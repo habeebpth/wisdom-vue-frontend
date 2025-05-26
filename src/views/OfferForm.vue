@@ -108,11 +108,10 @@
               <!-- For Non-Members -->
               <template v-else>
                 <div>
-                  <label for="district" class="form-label">ജില്ല (District) <span
-                      class="text-gray-500">(Optional)</span></label>
-                  <select id="district" v-model="form.district" class="form-select" @change="onDistrictChange">
-                    <option value="" disabled>Select a district</option>
-                    <option v-for="district in districts" :key="district.id" :value="district.id">
+                  <label for="district" class="form-label">ജില്ല (District) <span class="text-gray-500">(Optional)</span></label>
+                  <select id="district" v-model="form.district" class="form-select">
+                    <option value="">Select a district</option>
+                    <option v-for="district in keralaDistricts" :key="district.id" :value="district.id">
                       {{ district.name }}
                     </option>
                   </select>
@@ -120,35 +119,38 @@
                 </div>
 
                 <div>
-                  <label for="taluk" class="form-label">താലൂക്ക് (Taluk) <span
-                      class="text-gray-500">(Optional)</span></label>
-                  <select id="taluk" v-model="form.taluk" class="form-select" @change="onTalukChange"
-                    :disabled="!form.district">
-                    <option value="" disabled>Select a taluk</option>
-                    <option v-for="taluk in taluks" :key="taluk.id" :value="taluk.id">
-                      {{ taluk.name }}
-                    </option>
-                  </select>
+                  <label for="taluk" class="form-label">താലൂക്ക് (Taluk) <span class="text-gray-500">(Optional)</span></label>
+                  <input 
+                    id="taluk" 
+                    v-model="form.taluk" 
+                    type="text" 
+                    class="form-input" 
+                    placeholder="Enter taluk name"
+                  />
                   <p v-if="errors.taluk" class="mt-1 text-sm text-red-600">{{ errors.taluk }}</p>
                 </div>
 
                 <div>
-                  <label for="panchayath" class="form-label">പഞ്ചായത്ത് (Panchayath) <span
-                      class="text-gray-500">(Optional)</span></label>
-                  <select id="panchayath" v-model="form.panchayath" class="form-select" :disabled="!form.taluk">
-                    <option value="" disabled>Select a panchayath</option>
-                    <option v-for="panchayath in panchayaths" :key="panchayath.id" :value="panchayath.id">
-                      {{ panchayath.name }}
-                    </option>
-                  </select>
+                  <label for="panchayath" class="form-label">പഞ്ചായത്ത് (Panchayath) <span class="text-gray-500">(Optional)</span></label>
+                  <input 
+                    id="panchayath" 
+                    v-model="form.panchayath" 
+                    type="text" 
+                    class="form-input" 
+                    placeholder="Enter panchayath name"
+                  />
                   <p v-if="errors.panchayath" class="mt-1 text-sm text-red-600">{{ errors.panchayath }}</p>
                 </div>
 
                 <div>
-                  <label for="ward" class="form-label">വാർഡ് (Ward) <span
-                      class="text-gray-500">(Optional)</span></label>
-                  <input id="ward" v-model="form.ward" type="text" class="form-input"
-                    placeholder="Enter ward number/name" />
+                  <label for="ward" class="form-label">വാർഡ് (Ward) <span class="text-gray-500">(Optional)</span></label>
+                  <input 
+                    id="ward" 
+                    v-model="form.ward" 
+                    type="text" 
+                    class="form-input"
+                    placeholder="Enter ward number/name" 
+                  />
                 </div>
               </template>
             </div>
@@ -176,18 +178,131 @@
                 <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
               </div>
 
+              <!-- Mobile Number with Country Code -->
               <div>
                 <label for="mobile" class="form-label">മൊബൈൽ (Mobile) <span class="text-red-500">*</span></label>
-                <input id="mobile" v-model="form.mobile" type="tel" class="form-input" required
-                  placeholder="Enter your mobile number" />
+                <div class="flex">
+                  <!-- Country Code Selector for Mobile -->
+                  <div class="relative">
+                    <button 
+                      type="button"
+                      @click="showMobileCountryDropdown = !showMobileCountryDropdown"
+                      class="flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <span class="mr-2">{{ selectedMobileCountry.flag }}</span>
+                      <span class="mr-1">{{ selectedMobileCountry.code }}</span>
+                      <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    
+                    <!-- Mobile Country Dropdown -->
+                    <div v-if="showMobileCountryDropdown" class="absolute top-full left-0 z-50 w-80 max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg">
+                      <div class="p-2">
+                        <input 
+                          v-model="mobileCountrySearch" 
+                          type="text" 
+                          placeholder="Search countries..."
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                      <div class="max-h-48 overflow-y-auto">
+                        <button
+                          v-for="country in filteredMobileCountries"
+                          :key="country.code"
+                          type="button"
+                          @click="selectMobileCountry(country)"
+                          class="w-full flex items-center px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                        >
+                          <span class="mr-3">{{ country.flag }}</span>
+                          <span class="mr-2 text-sm font-mono">{{ country.code }}</span>
+                          <span class="text-sm">{{ country.name }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Mobile Number Input -->
+                  <input 
+                    id="mobile" 
+                    v-model="form.mobile" 
+                    type="tel" 
+                    class="flex-1 form-input rounded-l-none border-l-0 focus:ring-green-500 focus:border-green-500" 
+                    required
+                    placeholder="Enter mobile number"
+                  />
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                  Expected format: {{ selectedMobileCountry.format }} for {{ selectedMobileCountry.name }}
+                </div>
                 <p v-if="errors.mobile" class="mt-1 text-sm text-red-600">{{ errors.mobile }}</p>
               </div>
 
-              <div>
-                <label for="whatsapp" class="form-label">വാട്സ്ആപ്പ് (WhatsApp) <span
-                    class="text-red-500">*</span></label>
-                <input id="whatsapp" v-model="form.whatsapp" type="tel" class="form-input" required
-                  placeholder="Enter your WhatsApp number" />
+              <!-- WhatsApp Same as Mobile Checkbox -->
+              <div class="flex items-center space-x-3">
+                <input 
+                  id="sameWhatsApp" 
+                  v-model="sameWhatsAppAsMobile" 
+                  type="checkbox" 
+                  class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  @change="onSameWhatsAppChange"
+                />
+                <label for="sameWhatsApp" class="text-sm text-gray-700">WhatsApp number same as mobile</label>
+              </div>
+
+              <!-- WhatsApp Number with Country Code -->
+              <div v-if="!sameWhatsAppAsMobile">
+                <label for="whatsapp" class="form-label">വാട്സ്ആപ്പ് (WhatsApp) <span class="text-red-500">*</span></label>
+                <div class="flex">
+                  <!-- Country Code Selector for WhatsApp -->
+                  <div class="relative">
+                    <button 
+                      type="button"
+                      @click="showWhatsAppCountryDropdown = !showWhatsAppCountryDropdown"
+                      class="flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <span class="mr-2">{{ selectedWhatsAppCountry.flag }}</span>
+                      <span class="mr-1">{{ selectedWhatsAppCountry.code }}</span>
+                      <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    
+                    <!-- WhatsApp Country Dropdown -->
+                    <div v-if="showWhatsAppCountryDropdown" class="absolute top-full left-0 z-50 w-80 max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg">
+                      <div class="p-2">
+                        <input 
+                          v-model="whatsappCountrySearch" 
+                          type="text" 
+                          placeholder="Search countries..."
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                      <div class="max-h-48 overflow-y-auto">
+                        <button
+                          v-for="country in filteredWhatsAppCountries"
+                          :key="country.code"
+                          type="button"
+                          @click="selectWhatsAppCountry(country)"
+                          class="w-full flex items-center px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                        >
+                          <span class="mr-3">{{ country.flag }}</span>
+                          <span class="mr-2 text-sm font-mono">{{ country.code }}</span>
+                          <span class="text-sm">{{ country.name }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- WhatsApp Number Input -->
+                  <input 
+                    id="whatsapp" 
+                    v-model="form.whatsapp" 
+                    type="tel" 
+                    class="flex-1 form-input rounded-l-none border-l-0 focus:ring-green-500 focus:border-green-500" 
+                    required
+                    placeholder="Enter WhatsApp number"
+                  />
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                  Expected format: {{ selectedWhatsAppCountry.format }} for {{ selectedWhatsAppCountry.name }}
+                </div>
                 <p v-if="errors.whatsapp" class="mt-1 text-sm text-red-600">{{ errors.whatsapp }}</p>
               </div>
 
@@ -284,9 +399,9 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="form-label">പൂർത്തിയാക്കുന്ന വർഷം (Completion Year) <span
-                      class="text-red-500">*</span></label>
+                      class="text-gray-500">(Optional)</span></label>
                   <select v-model="form.completionYear" class="form-select">
-                    <option value="" disabled>Select Year</option>
+                    <option value="">Select Year</option>
                     <option value="2025">2025</option>
                     <option value="2026">2026</option>
                   </select>
@@ -294,9 +409,9 @@
 
                 <div>
                   <label class="form-label">പൂർത്തിയാക്കുന്ന മാസം (Completion Month) <span
-                      class="text-red-500">*</span></label>
+                      class="text-gray-500">(Optional)</span></label>
                   <select v-model="form.completionMonth" class="form-select">
-                    <option value="" disabled>Select Month</option>
+                    <option value="">Select Month</option>
                     <option value="1">ജനുവരി (January)</option>
                     <option value="2">ഫെബ്രുവരി (February)</option>
                     <option value="3">മാർച്ച് (March)</option>
@@ -312,30 +427,6 @@
                   </select>
                 </div>
               </div>
-
-              <div>
-                <label for="paidAmount" class="form-label">നൽകിയ തുക (Amount Paid) <span
-                    class="text-red-500">*</span></label>
-                <div class="mt-1 relative rounded-md shadow-sm">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="text-gray-500 sm:text-sm">₹</span>
-                  </div>
-                  <input id="paidAmount" v-model.number="form.paidAmount" type="number" class="form-input pl-8"
-                    placeholder="Enter amount already paid" min="0" @input="calculateRemainingAmount" />
-                </div>
-                <p v-if="errors.paidAmount" class="mt-1 text-sm text-red-600">{{ errors.paidAmount }}</p>
-              </div>
-
-              <div>
-                <label for="remainingAmount" class="form-label">ബാക്കി നൽകാൻ ഉള്ളത് (Remaining Amount)</label>
-                <div class="mt-1 relative rounded-md shadow-sm">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="text-gray-500 sm:text-sm">₹</span>
-                  </div>
-                  <input id="remainingAmount" :value="remainingAmount" type="number" class="form-input pl-8 bg-gray-100"
-                    readonly />
-                </div>
-              </div>
             </div>
 
             <div class="flex justify-between mt-8">
@@ -347,7 +438,7 @@
                 <span v-if="isProcessing">
                   <i class="fas fa-spinner fa-spin mr-2"></i> Processing...
                 </span>
-                <span v-else>Submit Offer</span>
+                <span v-else">Submit Offer</span>
               </button>
             </div>
           </div>
@@ -371,6 +462,14 @@
                     <span class="font-medium">{{ form.name }}</span>
                   </div>
                   <div class="flex justify-between">
+                    <span class="text-gray-600">Mobile:</span>
+                    <span class="font-medium">{{ selectedMobileCountry.code }} {{ form.mobile }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">WhatsApp:</span>
+                    <span class="font-medium">{{ getWhatsAppDisplay() }}</span>
+                  </div>
+                  <div class="flex justify-between">
                     <span class="text-gray-600">Total Offer Amount:</span>
                     <span class="font-medium">₹{{ form.offerAmount }}</span>
                   </div>
@@ -378,17 +477,9 @@
                     <span class="text-gray-600">Payment Schedule:</span>
                     <span class="font-medium">{{ getInstallmentText() }}</span>
                   </div>
-                  <div class="flex justify-between">
+                  <div v-if="form.completionYear && form.completionMonth" class="flex justify-between">
                     <span class="text-gray-600">Completion Date:</span>
                     <span class="font-medium">{{ getMonthName(form.completionMonth) }} {{ form.completionYear }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600">Amount Paid:</span>
-                    <span class="font-medium">₹{{ form.paidAmount }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600">Remaining Amount:</span>
-                    <span class="font-medium">₹{{ remainingAmount }}</span>
                   </div>
                 </div>
               </div>
@@ -413,7 +504,8 @@
 import { ref, reactive, computed, onMounted, inject } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { getDistricts, getZones, getUnits, getTaluks, getPanchayaths, submitOffer } from '@/utils/api'
+import { getDistricts, getZones, getUnits, submitOffer } from '@/utils/api'
+import { validateMobileNumber, getDefaultCountry, searchCountries } from '@/utils/mobileValidation'
 
 export default {
   name: 'OfferForm',
@@ -429,8 +521,38 @@ export default {
     const currentStep = ref(1)
     const isMember = ref(null)
     const isProcessing = ref(false)
+    const sameWhatsAppAsMobile = ref(true)
+
+    // Country code dropdowns
+    const showMobileCountryDropdown = ref(false)
+    const showWhatsAppCountryDropdown = ref(false)
+    const mobileCountrySearch = ref('')
+    const whatsappCountrySearch = ref('')
 
     const steps = ['Member', 'Location', 'Personal', 'Offer', 'Confirmation']
+
+    // Default to India
+    const selectedMobileCountry = ref(getDefaultCountry())
+    const selectedWhatsAppCountry = ref(getDefaultCountry())
+
+    // Kerala districts
+    const keralaDistricts = ref([
+      { id: 'alappuzha', name: 'Alappuzha' },
+      { id: 'ernakulam', name: 'Ernakulam' },
+      { id: 'idukki', name: 'Idukki' },
+      { id: 'kannur', name: 'Kannur' },
+      { id: 'kasaragod', name: 'Kasaragod' },
+      { id: 'kollam', name: 'Kollam' },
+      { id: 'kottayam', name: 'Kottayam' },
+      { id: 'kozhikode', name: 'Kozhikode' },
+      { id: 'malappuram', name: 'Malappuram' },
+      { id: 'palakkad', name: 'Palakkad' },
+      { id: 'pathanamthitta', name: 'Pathanamthitta' },
+      { id: 'thiruvananthapuram', name: 'Thiruvananthapuram' },
+      { id: 'thrissur', name: 'Thrissur' },
+      { id: 'wayanad', name: 'Wayanad' },
+      { id: 'other', name: 'Other' }
+    ])
 
     // User form data
     const form = reactive({
@@ -454,9 +576,8 @@ export default {
       offerAmount: null,
       installmentType: '',
       customInstallments: null,
-      completionYear: '2025',
-      completionMonth: '',
-      paidAmount: 0
+      completionYear: '',
+      completionMonth: ''
     })
 
     // Validation errors
@@ -474,24 +595,53 @@ export default {
       offerAmount: '',
       installmentType: '',
       completionYear: '',
-      completionMonth: '',
-      paidAmount: ''
+      completionMonth: ''
     })
 
     // Location data
     const districts = ref([])
     const zones = ref([])
     const units = ref([])
-    const taluks = ref([])
-    const panchayaths = ref([])
 
-    // Computed remaining amount
-    const remainingAmount = computed(() => {
-      if (form.offerAmount && form.paidAmount !== null) {
-        return form.offerAmount - form.paidAmount
-      }
-      return 0
+    // Computed properties
+    const filteredMobileCountries = computed(() => {
+      return searchCountries(mobileCountrySearch.value)
     })
+
+    const filteredWhatsAppCountries = computed(() => {
+      return searchCountries(whatsappCountrySearch.value)
+    })
+
+    // Country selection methods
+    const selectMobileCountry = (country) => {
+      selectedMobileCountry.value = country
+      showMobileCountryDropdown.value = false
+      mobileCountrySearch.value = ''
+    }
+
+    const selectWhatsAppCountry = (country) => {
+      selectedWhatsAppCountry.value = country
+      showWhatsAppCountryDropdown.value = false
+      whatsappCountrySearch.value = ''
+    }
+
+    // WhatsApp same as mobile functionality
+    const onSameWhatsAppChange = () => {
+      if (sameWhatsAppAsMobile.value) {
+        form.whatsapp = form.mobile
+        selectedWhatsAppCountry.value = selectedMobileCountry.value
+      } else {
+        form.whatsapp = ''
+      }
+    }
+
+    // Get WhatsApp display
+    const getWhatsAppDisplay = () => {
+      if (sameWhatsAppAsMobile.value) {
+        return `${selectedMobileCountry.value.code} ${form.mobile} (Same as mobile)`
+      }
+      return `${selectedWhatsAppCountry.value.code} ${form.whatsapp}`
+    }
 
     // Get installment text for summary
     const getInstallmentText = () => {
@@ -513,16 +663,6 @@ export default {
       return months[parseInt(monthNumber) - 1] || ''
     }
 
-    // Calculate remaining amount
-    const calculateRemainingAmount = () => {
-      if (form.paidAmount > form.offerAmount) {
-        errors.paidAmount = 'Paid amount cannot be greater than the total offer amount'
-        form.paidAmount = form.offerAmount
-      } else {
-        errors.paidAmount = ''
-      }
-    }
-
     // Load districts on mount
     onMounted(async () => {
       try {
@@ -532,6 +672,11 @@ export default {
       } catch (error) {
         console.error('Failed to load districts:', error)
         hideLoader()
+      }
+
+      // Set WhatsApp same as mobile by default
+      if (form.mobile) {
+        form.whatsapp = form.mobile
       }
     })
 
@@ -553,22 +698,6 @@ export default {
             hideLoader()
           }
         }
-      } else {
-        form.taluk = ''
-        form.panchayath = ''
-        taluks.value = []
-        panchayaths.value = []
-
-        if (form.district) {
-          try {
-            showLoader('Loading taluks...')
-            taluks.value = await getTaluks(form.district)
-            hideLoader()
-          } catch (error) {
-            console.error('Failed to load taluks:', error)
-            hideLoader()
-          }
-        }
       }
     }
 
@@ -584,23 +713,6 @@ export default {
           hideLoader()
         } catch (error) {
           console.error('Failed to load units:', error)
-          hideLoader()
-        }
-      }
-    }
-
-    // Handle taluk change
-    const onTalukChange = async () => {
-      form.panchayath = ''
-      panchayaths.value = []
-
-      if (form.taluk) {
-        try {
-          showLoader('Loading panchayaths...')
-          panchayaths.value = await getPanchayaths(form.taluk)
-          hideLoader()
-        } catch (error) {
-          console.error('Failed to load panchayaths:', error)
           hideLoader()
         }
       }
@@ -673,22 +785,24 @@ export default {
         isValid = false
       }
 
-      // Validate mobile
-      if (!form.mobile.trim()) {
-        errors.mobile = 'Mobile number is required'
-        isValid = false
-      } else if (!/^[0-9]{10}$/.test(form.mobile)) {
-        errors.mobile = 'Please enter a valid 10-digit mobile number'
+      // Validate mobile using global validation
+      const mobileError = validateMobileNumber(form.mobile, selectedMobileCountry.value, 'Mobile')
+      if (mobileError) {
+        errors.mobile = mobileError
         isValid = false
       }
 
-      // Validate WhatsApp
-      if (!form.whatsapp.trim()) {
-        errors.whatsapp = 'WhatsApp number is required'
-        isValid = false
-      } else if (!/^[0-9]{10}$/.test(form.whatsapp)) {
-        errors.whatsapp = 'Please enter a valid 10-digit WhatsApp number'
-        isValid = false
+      // Validate WhatsApp (only if not same as mobile)
+      if (!sameWhatsAppAsMobile.value) {
+        const whatsappError = validateMobileNumber(form.whatsapp, selectedWhatsAppCountry.value, 'WhatsApp')
+        if (whatsappError) {
+          errors.whatsapp = whatsappError
+          isValid = false
+        }
+      } else {
+        // Auto-sync WhatsApp with mobile
+        form.whatsapp = form.mobile
+        selectedWhatsAppCountry.value = selectedMobileCountry.value
       }
 
       // Validate email (if provided)
@@ -715,7 +829,6 @@ export default {
       errors.installmentType = ''
       errors.completionYear = ''
       errors.completionMonth = ''
-      errors.paidAmount = ''
 
       let isValid = true
 
@@ -734,25 +847,7 @@ export default {
         isValid = false
       }
 
-      // Validate completion date
-      if (!form.completionYear) {
-        errors.completionYear = 'Please select a completion year'
-        isValid = false
-      }
-
-      if (!form.completionMonth) {
-        errors.completionMonth = 'Please select a completion month'
-        isValid = false
-      }
-
-      // Validate paid amount
-      if (form.paidAmount < 0) {
-        errors.paidAmount = 'Paid amount cannot be negative'
-        isValid = false
-      } else if (form.paidAmount > form.offerAmount) {
-        errors.paidAmount = 'Paid amount cannot exceed the total offer amount'
-        isValid = false
-      }
+      // Completion year and month are now optional - no validation required
 
       if (isValid) {
         try {
@@ -762,8 +857,10 @@ export default {
           // Prepare data for the backend API
           const offerData = {
             name: form.name,
-            mobile: form.mobile,
-            whatsapp: form.whatsapp,
+            mobile: `${selectedMobileCountry.value.code}${form.mobile}`,
+            whatsapp: sameWhatsAppAsMobile.value 
+              ? `${selectedMobileCountry.value.code}${form.mobile}`
+              : `${selectedWhatsAppCountry.value.code}${form.whatsapp}`,
             email: form.email,
             isMember: isMember.value,
             district: form.district,
@@ -771,8 +868,7 @@ export default {
             installmentType: form.installmentType,
             customInstallments: form.installmentType === 'custom' ? form.customInstallments : null,
             completionYear: form.completionYear,
-            completionMonth: form.completionMonth,
-            paidAmount: form.paidAmount
+            completionMonth: form.completionMonth
           }
 
           // Add member-specific data
@@ -802,21 +898,21 @@ export default {
               body: JSON.stringify({
                 name: offerData.name,
                 mobile: offerData.mobile,
-                whatsapp: offerData.whatsapp || offerData.mobile,
+                whatsapp: offerData.whatsapp,
                 email: offerData.email || '',
                 is_member: offerData.isMember ? 1 : 0,
                 district_id: offerData.district || null,
                 zone_id: offerData.zone || null,
                 unit_id: offerData.unit || null,
-                taluk_id: offerData.taluk || null,
-                panchayath_id: offerData.panchayath || null,
+                taluk: offerData.taluk || '',
+                panchayath: offerData.panchayath || '',
                 ward: offerData.ward || '',
                 amount: parseFloat(offerData.offerAmount),
                 installment_type: offerData.installmentType,
                 custom_installments: offerData.customInstallments || null,
-                completion_year: offerData.completionYear,
-                completion_month: offerData.completionMonth,
-                paid_amount: parseFloat(offerData.paidAmount) || 0
+                completion_year: offerData.completionYear || null,
+                completion_month: offerData.completionMonth || null,
+                paid_amount: 0 // Default to 0 since we're not collecting this anymore
               })
             });
 
@@ -836,10 +932,12 @@ export default {
                 id: response.offerId,
                 type: 'offer',
                 amount: form.offerAmount,
-                paidAmount: form.paidAmount,
-                remainingAmount: remainingAmount.value,
+                paidAmount: 0,
+                remainingAmount: form.offerAmount,
                 installments: form.installmentType === 'custom' ? form.customInstallments : form.installmentType,
-                completionDate: `${getMonthName(form.completionMonth)} ${form.completionYear}`,
+                completionDate: form.completionYear && form.completionMonth 
+                  ? `${getMonthName(form.completionMonth)} ${form.completionYear}` 
+                  : 'Not specified',
                 date: new Date().toISOString(),
                 status: 'active'
               }
@@ -898,6 +996,16 @@ export default {
       }
     }
 
+    // Close dropdowns when clicking outside
+    onMounted(() => {
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.relative')) {
+          showMobileCountryDropdown.value = false
+          showWhatsAppCountryDropdown.value = false
+        }
+      })
+    })
+
     return {
       currentStep,
       steps,
@@ -907,10 +1015,22 @@ export default {
       districts,
       zones,
       units,
-      taluks,
-      panchayaths,
-      remainingAmount,
+      keralaDistricts,
       isProcessing,
+      sameWhatsAppAsMobile,
+      selectedMobileCountry,
+      selectedWhatsAppCountry,
+      showMobileCountryDropdown,
+      showWhatsAppCountryDropdown,
+      mobileCountrySearch,
+      whatsappCountrySearch,
+      filteredMobileCountries,
+      filteredWhatsAppCountries,
+      selectMobileCountry,
+      selectWhatsAppCountry,
+      validateMobileNumber,
+      onSameWhatsAppChange,
+      getWhatsAppDisplay,
       nextStep,
       prevStep,
       goBack,
@@ -918,11 +1038,9 @@ export default {
       viewHistory,
       onDistrictChange,
       onZoneChange,
-      onTalukChange,
       validateLocationAndContinue,
       validatePersonalInfoAndContinue,
       submitOffer,
-      calculateRemainingAmount,
       getInstallmentText,
       getMonthName
     }
@@ -966,5 +1084,23 @@ export default {
 .btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+/* Custom scrollbar for dropdown */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>

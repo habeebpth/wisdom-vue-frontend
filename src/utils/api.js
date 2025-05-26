@@ -247,31 +247,115 @@ export const submitOffer = async (offerData) => {
 }
 
 /**
- * Gets payment history from backend
+ * Gets payment history from backend with better error handling
  * @param {string} mobile - Mobile number
  * @returns {Promise} Promise object with payment history
  */
 export const getPaymentHistory = async (mobile) => {
+  if (!mobile) {
+    console.warn('No mobile number provided for payment history');
+    return [];
+  }
+
   try {
+    console.log('Fetching payment history for mobile:', mobile);
+    
     const response = await apiClient.get(`/donations/history?mobile=${mobile}`)
-    return response.data.history || []
+    
+    console.log('Payment history API response:', response.data);
+    
+    // Ensure we return an array
+    const history = response.data.history || response.data.data || response.data || [];
+    
+    // Validate and format the data
+    const formattedHistory = Array.isArray(history) ? history.map(item => ({
+      transactionId: item.transaction_id || item.transactionId || 'N/A',
+      amount: item.amount || 0,
+      date: item.date || item.created_at || new Date().toISOString(),
+      status: item.status || 'completed',
+      receiptUrl: item.receipt_url || item.receiptUrl || null
+    })) : [];
+    
+    console.log('Formatted payment history:', formattedHistory);
+    return formattedHistory;
+    
   } catch (error) {
-    console.error('Failed to get payment history:', error)
-    return []
+    console.error('Failed to get payment history:', error);
+    
+    // Check if it's a network error
+    if (error.code === 'NETWORK_ERROR' || !error.response) {
+      console.error('Network error - using fallback data');
+    } else if (error.response) {
+      console.error('API returned error:', error.response.status, error.response.data);
+    }
+    
+    // Return empty array instead of fallback data to avoid confusion
+    return [];
   }
 }
 
 /**
- * Gets offer history from backend
+ * Gets offer history from backend with better error handling
  * @param {string} mobile - Mobile number
  * @returns {Promise} Promise object with offer history
  */
 export const getOfferHistory = async (mobile) => {
-  try {
-    const response = await apiClient.get(`/offers/history?mobile=${mobile}`)
-    return response.data.history || []
-  } catch (error) {
-    console.error('Failed to get offer history:', error)
-    return []
+  if (!mobile) {
+    console.warn('No mobile number provided for offer history');
+    return [];
   }
+
+  try {
+    console.log('Fetching offer history for mobile:', mobile);
+    
+    const response = await apiClient.get(`/offers/history?mobile=${mobile}`)
+    
+    console.log('Offer history API response:', response.data);
+    
+    // Ensure we return an array
+    const history = response.data.history || response.data.data || response.data || [];
+    
+    // Validate and format the data
+    const formattedHistory = Array.isArray(history) ? history.map(item => ({
+      id: item.id || item.offer_id || 'N/A',
+      amount: item.amount || item.total_amount || 0,
+      paidAmount: item.paid_amount || item.paidAmount || 0,
+      installments: item.installment_type || item.installments || '1',
+      completionDate: formatCompletionDate(item.completion_year, item.completion_month) || 'N/A',
+      date: item.date || item.created_at || new Date().toISOString(),
+      status: item.status || 'active',
+      district: item.district_name || item.district || '',
+      zone: item.zone_name || item.zone || '',
+      unit: item.unit_name || item.unit || ''
+    })) : [];
+    
+    console.log('Formatted offer history:', formattedHistory);
+    return formattedHistory;
+    
+  } catch (error) {
+    console.error('Failed to get offer history:', error);
+    
+    // Check if it's a network error
+    if (error.code === 'NETWORK_ERROR' || !error.response) {
+      console.error('Network error - using fallback data');
+    } else if (error.response) {
+      console.error('API returned error:', error.response.status, error.response.data);
+    }
+    
+    // Return empty array instead of fallback data
+    return [];
+  }
+}
+
+// Helper function to format completion date
+const formatCompletionDate = (year, month) => {
+  if (!year || !month) return null;
+  
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  
+  const monthName = months[parseInt(month) - 1];
+  return `${monthName} ${year}`;
 }

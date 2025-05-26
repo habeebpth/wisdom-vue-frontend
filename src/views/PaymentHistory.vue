@@ -196,31 +196,80 @@ export default {
       loadHistories()
     })
 
-    const loadHistories = async () => {
-      console.log(loadHistories);
+    // const loadHistories = async () => {
+    //   console.log(loadHistories);
       
-      const userInfo = store.state.user.userInfo
-      if (userInfo && userInfo.mobile) {
-        try {
-          showLoader('Loading your payment history...')
+    //   const userInfo = store.state.user.userInfo
+    //   if (userInfo && userInfo.mobile) {
+    //     try {
+    //       showLoader('Loading your payment history...')
 
-          // Call API functions directly and get the data
-          const [paymentData, offerData] = await Promise.all([
-            getPaymentHistory(userInfo.mobile),
-            getOfferHistory(userInfo.mobile)
-          ])
+    //       // Call API functions directly and get the data
+    //       const [paymentData, offerData] = await Promise.all([
+    //         getPaymentHistory(userInfo.mobile),
+    //         getOfferHistory(userInfo.mobile)
+    //       ])
 
-          // Store the data in Vuex store
-          store.commit('payment/setPaymentHistory', paymentData)
-          store.commit('payment/setOfferHistory', offerData)
+    //       // Store the data in Vuex store
+    //       store.commit('payment/setPaymentHistory', paymentData)
+    //       store.commit('payment/setOfferHistory', offerData)
 
-          hideLoader()
-        } catch (error) {
-          console.error('Failed to load histories:', error)
-          hideLoader()
-        }
-      }
-    }
+    //       hideLoader()
+    //     } catch (error) {
+    //       console.error('Failed to load histories:', error)
+    //       hideLoader()
+    //     }
+    //   }
+    // }
+
+    const loadHistories = async () => {
+  console.log('Loading histories...');
+  
+  const userInfo = store.state.user
+  console.log('User info:', userInfo);
+  
+  // Check if user has mobile number
+  if (!userInfo.mobile) {
+    console.warn('No mobile number found for user:', userInfo);
+    // You might want to show a message or redirect user to update their info
+    return;
+  }
+
+  try {
+    showLoader('Loading your payment history...')
+
+    // Call API functions with better error handling
+    const [paymentData, offerData] = await Promise.allSettled([
+      getPaymentHistory(userInfo.countryCode + userInfo.mobile).catch(err => {
+        console.error('Payment history API error:', err);
+        return []; // Return empty array on error
+      }),
+      getOfferHistory(userInfo.countryCode + userInfo.mobile).catch(err => {
+        console.error('Offer history API error:', err);
+        return []; // Return empty array on error
+      })
+    ]);
+
+    // Handle the settled promises
+    const payments = paymentData.status === 'fulfilled' ? paymentData.value : [];
+    const offers = offerData.status === 'fulfilled' ? offerData.value : [];
+
+    console.log('Payment data received:', payments);
+    console.log('Offer data received:', offers);
+
+    // Store the data in Vuex store
+    store.commit('payment/setPaymentHistory', payments)
+    store.commit('payment/setOfferHistory', offers)
+
+    hideLoader()
+  } catch (error) {
+    console.error('Failed to load histories:', error)
+    hideLoader()
+    
+    // Show user-friendly error message
+    alert('Failed to load history. Please check your connection and try again.');
+  }
+}
 
     const formatDate = (dateString) => {
       if (!dateString) return ''
