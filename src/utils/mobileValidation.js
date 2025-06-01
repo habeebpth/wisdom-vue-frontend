@@ -296,7 +296,7 @@ export const formatMobileForDatabase = (mobileNumber, country) => {
   if (!mobileNumber || !country) return ''
 
   const cleanNumber = mobileNumber.replace(/\D/g, '')
-  return `${country.code}-${cleanNumber}`
+  return `+${country.code}-${cleanNumber}`
 }
 
 /**
