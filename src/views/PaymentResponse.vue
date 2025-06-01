@@ -8,12 +8,12 @@
             <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <i class="fas fa-check text-3xl text-green-600"></i>
             </div>
-            
+
             <h1 class="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h1>
             <p class="text-gray-600 mb-6">
               Thank you for your donation. Your contribution will make a difference.
             </p>
-            
+
             <div class="bg-gray-50 p-4 rounded-lg mb-6">
               <div class="flex justify-between py-2 border-b border-gray-200">
                 <span class="text-gray-600">Transaction ID:</span>
@@ -28,9 +28,9 @@
                 <span class="font-semibold">{{ formattedDate }}</span>
               </div>
             </div>
-            
+
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-              <button @click="downloadReceipt" class="btn btn-primary">
+              <button @click="downloadReceipt(transactionId)" class="btn btn-primary">
                 <i class="fas fa-download mr-2"></i> Download Receipt
               </button>
               <router-link to="/payment-history" class="btn bg-gray-200 hover:bg-gray-300 text-gray-700">
@@ -38,18 +38,18 @@
               </router-link>
             </div>
           </div>
-          
+
           <!-- Failure State -->
           <div v-else class="text-center">
             <div class="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
               <i class="fas fa-times text-3xl text-red-600"></i>
             </div>
-            
+
             <h1 class="text-2xl font-bold text-gray-800 mb-2">Payment Failed</h1>
             <p class="text-gray-600 mb-6">
               We were unable to process your payment. Please try again or contact support.
             </p>
-            
+
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
               <router-link to="/donate" class="btn btn-primary">
                 <i class="fas fa-redo mr-2"></i> Try Again
@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed,inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { getReceiptUrl } from '@/utils/api'
 
@@ -92,12 +92,13 @@ export default {
   },
   setup(props) {
     const router = useRouter()
-    
+    const showLoader = inject('showLoader')
+    const hideLoader = inject('hideLoader')
     const isSuccess = computed(() => props.status === 'success')
-    
+
     const formattedDate = computed(() => {
       if (!props.date) return ''
-      
+
       try {
         const date = new Date(props.date)
         return date.toLocaleString('en-IN', {
@@ -112,24 +113,55 @@ export default {
         return props.date
       }
     })
-    
-    const downloadReceipt = async () => {
-      if (!props.transactionId) {
+
+    const downloadReceipt = async (transactionId) => {
+      if (!transactionId) {
         alert('Receipt not available')
         return
       }
-      
+
       try {
-        const receiptUrl = await getReceiptUrl(props.transactionId)
-        
-        // Open receipt URL in a new tab
-        window.open(receiptUrl, '_blank')
+        showLoader('Generating receipt...')
+
+        // Direct fetch to your API endpoint
+        const response = await fetch(`https://wisdom-home.cloudocz.com/api/donations/receipt/${transactionId}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/pdf',
+            // Add authorization header if needed
+            // 'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to download receipt')
+        }
+
+        // Get the PDF blob
+        const blob = await response.blob()
+
+        // Create download link
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `receipt_${transactionId}.pdf`
+
+        // Trigger download
+        document.body.appendChild(link)
+        link.click()
+
+        // Cleanup
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+
+        hideLoader()
       } catch (error) {
-        console.error('Failed to get receipt:', error)
+        console.error('Failed to download receipt:', error)
+        hideLoader()
         alert('Unable to download receipt. Please try again later.')
       }
     }
-    
+
     return {
       isSuccess,
       formattedDate,

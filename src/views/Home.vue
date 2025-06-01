@@ -1,12 +1,8 @@
 <template>
   <div>
-    <Banner :imageUrl="bannerImage" title="₹123133.00" subtitle="Your contribution can change lives and create lasting impact">
-      <router-link to="/donate" class="btn btn-primary">
-        <i class="fas fa-heart mr-2"></i> Donate Now
-      </router-link>
-      <router-link to="/offer" class="btn btn-secondary">
-        <i class="fas fa-gift mr-2"></i> Offer Now
-      </router-link>
+    <Banner 
+      :imageUrl="bannerImage" 
+      subtitle="Your contribution can change lives and create lasting impact">
     </Banner>
     
     <section class="py-12 bg-white">
@@ -108,6 +104,49 @@
     </div>
   </div>
 </template>
+
+<script>
+import { ref, inject, onMounted } from 'vue'
+import Banner from '@/components/Banner.vue'
+
+export default {
+  name: 'Home',
+  components: {
+    Banner
+  },
+  setup() {
+    const showToast = ref(false)
+    const bannerImage = 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&q=80'
+    
+    // Get preloader functions
+    const showLoader = inject('showLoader')
+    const hideLoader = inject('hideLoader')
+    
+    // Show preloader when the page is loading
+    onMounted(() => {
+      showLoader('Loading home page...')
+      
+      // Simulate a short delay to ensure assets are loaded
+      setTimeout(() => {
+        hideLoader()
+      }, 800)
+    })
+    
+    const showComingSoon = () => {
+      showToast.value = true
+      setTimeout(() => {
+        showToast.value = false
+      }, 3000)
+    }
+    
+    return {
+      showToast,
+      bannerImage,
+      showComingSoon
+    }
+  }
+}
+</script>
 
 <style scoped>
 .container {
@@ -343,66 +382,6 @@
   
   .md\:w-1\/2 {
     width: 50%;
-  }
-}
-</style>
-
-<script>
-import { ref, inject, onMounted } from 'vue'
-import Banner from '@/components/Banner.vue'
-
-export default {
-  name: 'Home',
-  components: {
-    Banner
-  },
-  setup() {
-    const showToast = ref(false)
-    const bannerImage = 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&q=80'
-    
-    // Get preloader functions
-    const showLoader = inject('showLoader')
-    const hideLoader = inject('hideLoader')
-    
-    // Show preloader when the page is loading
-    onMounted(() => {
-      showLoader('Loading home page...')
-      
-      // Simulate a short delay to ensure assets are loaded
-      setTimeout(() => {
-        hideLoader()
-      }, 800)
-    })
-    
-    const showComingSoon = () => {
-      showToast.value = true
-      setTimeout(() => {
-        showToast.value = false
-      }, 3000)
-    }
-    
-    return {
-      showToast,
-      bannerImage,
-      showComingSoon
-    }
-  }
-}
-</script>
-
-<style scoped>
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 </style>

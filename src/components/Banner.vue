@@ -10,8 +10,42 @@
               <i class="fas fa-inr"></i>
             </div>
             <div class="collected-info">
-              <h3 class="collected-label">Collected So Far</h3>
-              <h2 class="collected-amount">{{ collectedAmount }}</h2>
+              <h3 class="collected-label">
+                Collected So Far
+                <span v-if="!isFirstLoad && !hasError" class="refresh-indicator">
+                  <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
+                </span>
+                <button 
+                  v-if="!isFirstLoad" 
+                  @click="manualRefresh" 
+                  class="manual-refresh-btn"
+                  :disabled="isLoading"
+                  title="Refresh now"
+                >
+                  <i class="fas fa-redo" :class="{ 'fa-spin': isManualRefresh }"></i>
+                </button>
+              </h3>
+              <h2 class="collected-amount" :class="{ 'updating': isLoading && !isFirstLoad }">
+                {{ displayAmount }}
+              </h2>
+              <div v-if="isLoading && isFirstLoad" class="loading-indicator">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading...</span>
+              </div>
+              <!-- <div v-if="hasError" class="error-indicator">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Unable to load amount</span>
+                <button @click="manualRefresh" class="retry-btn">
+                  <i class="fas fa-redo"></i> Retry
+                </button>
+              </div> -->
+              <!-- <div v-if="!isFirstLoad && !hasError" class="auto-refresh-info">
+                <i class="fas fa-clock"></i>
+                <span>Updates every 5 seconds</span>
+                <span class="last-updated" v-if="lastUpdated">
+                  • Last updated: {{ formatLastUpdated }}
+                </span>
+              </div> -->
             </div>
           </div>
           <div class="collected-subtitle">
@@ -60,7 +94,8 @@
 </template>
 
 <script>
-import { computed, ref, inject, onMounted } from 'vue'
+import { computed, ref, inject, onMounted, onBeforeUnmount } from 'vue'
+import { getCollectedAmount } from '@/utils/api'
 
 export default {
   name: 'Banner',
@@ -68,10 +103,6 @@ export default {
     imageUrl: {
       type: String,
       default: 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&q=80'
-    },
-    collectedAmount: {
-      type: String,
-      default: '₹123,133.00'
     },
     subtitle: {
       type: String,
@@ -83,19 +114,138 @@ export default {
     const showLoader = inject('showLoader')
     const hideLoader = inject('hideLoader')
     
+    // State for collected amount
+    const collectedAmount = ref('₹0.00')
+    const isLoading = ref(false)
+    const hasError = ref(false)
+    const refreshInterval = ref(null)
+    const isFirstLoad = ref(true)
+    const isManualRefresh = ref(false)
+    const lastUpdated = ref(null)
+    
     // Ensure the banner image URL is set, with a fallback
     const bannerImageUrl = computed(() => {
       return props.imageUrl || 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&q=80'
     })
     
-    // Show preloader while the banner image is loading
-    onMounted(() => {
-      // Create a new image to preload the banner image
+    // Display amount with loading/error states and refresh animation
+    const displayAmount = computed(() => {
+      if (isLoading.value && isFirstLoad.value) {
+        return 'Loading...'
+      }
+      if (hasError.value) {
+        return '₹0.00'
+      }
+      return collectedAmount.value
+    })
+    
+    // Format last updated time
+    const formatLastUpdated = computed(() => {
+      if (!lastUpdated.value) return ''
+      const now = new Date()
+      const diff = Math.floor((now - lastUpdated.value) / 1000)
+      
+      if (diff < 10) return 'just now'
+      if (diff < 60) return `${diff}s ago`
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+      return lastUpdated.value.toLocaleTimeString()
+    })
+    
+    // Fetch collected amount from API
+    const fetchCollectedAmount = async (showLoaderSpinner = true, isManual = false) => {
+      try {
+        // Only show loading state on first load or if explicitly requested
+        if (showLoaderSpinner) {
+          isLoading.value = true
+        }
+        if (isManual) {
+          isManualRefresh.value = true
+        }
+        hasError.value = false
+        
+        console.log('Fetching collected amount...')
+        
+        const response = await getCollectedAmount()
+        
+        if (response.success) {
+          const previousAmount = collectedAmount.value
+          collectedAmount.value = response.formattedAmount
+          lastUpdated.value = new Date()
+          
+          // Log if amount changed
+          if (previousAmount !== response.formattedAmount && !isFirstLoad.value) {
+            console.log('Amount updated from', previousAmount, 'to', response.formattedAmount)
+          }
+          
+          console.log('Successfully loaded collected amount:', response.formattedAmount)
+        } else {
+          throw new Error(response.error || 'Failed to fetch collected amount')
+        }
+        
+      } catch (error) {
+        console.error('Error fetching collected amount:', error)
+        hasError.value = true
+        if (isFirstLoad.value) {
+          collectedAmount.value = '₹0.00'
+        }
+        // Don't reset amount on refresh errors - keep showing last known value
+      } finally {
+        if (showLoaderSpinner) {
+          isLoading.value = false
+        }
+        if (isManual) {
+          isManualRefresh.value = false
+        }
+        isFirstLoad.value = false
+      }
+    }
+    
+    // Manual refresh function
+    const manualRefresh = async () => {
+      if (isLoading.value || isManualRefresh.value) return
+      console.log('Manual refresh triggered')
+      await fetchCollectedAmount(false, true)
+    }
+    
+    // Start auto-refresh interval
+    const startAutoRefresh = () => {
+      // Clear any existing interval
+      if (refreshInterval.value) {
+        clearInterval(refreshInterval.value)
+      }
+      
+      // Set up new interval to refresh every 5 seconds
+      refreshInterval.value = setInterval(() => {
+        console.log('Auto-refreshing collected amount...')
+        fetchCollectedAmount(false) // Don't show loading spinner for auto-refresh
+      }, 5000) // 5 seconds
+      
+      console.log('Auto-refresh started - will update every 5 seconds')
+    }
+    
+    // Stop auto-refresh interval
+    const stopAutoRefresh = () => {
+      if (refreshInterval.value) {
+        clearInterval(refreshInterval.value)
+        refreshInterval.value = null
+        console.log('Auto-refresh stopped')
+      }
+    }
+    
+    // Load data on component mount
+    onMounted(async () => {
+      // Show main preloader for banner setup
+      showLoader('Loading banner...')
+      
+      // Preload banner image
       const img = new Image()
       img.src = bannerImageUrl.value
       
-      // Show loader while image is loading
-      showLoader('Loading banner...')
+      // Load collected amount data initially
+      await fetchCollectedAmount(true)
+      
+      // Start auto-refresh after initial load
+      startAutoRefresh()
       
       // Hide loader when image is loaded or on error
       img.onload = () => hideLoader()
@@ -104,9 +254,25 @@ export default {
       // Add a fallback in case image loading takes too long
       setTimeout(() => hideLoader(), 2000)
     })
+    
+    // Clean up interval when component is unmounted
+    onBeforeUnmount(() => {
+      stopAutoRefresh()
+    })
 
     return {
-      bannerImageUrl
+      bannerImageUrl,
+      displayAmount,
+      isLoading,
+      hasError,
+      isFirstLoad,
+      isManualRefresh,
+      lastUpdated,
+      formatLastUpdated,
+      fetchCollectedAmount,
+      manualRefresh,
+      startAutoRefresh,
+      stopAutoRefresh
     }
   }
 }
@@ -197,6 +363,40 @@ export default {
   margin: 0 0 0.25rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refresh-indicator {
+  opacity: 0.7;
+  font-size: 0.7rem;
+  transition: opacity 0.3s ease;
+}
+
+.refresh-indicator:hover {
+  opacity: 1;
+}
+
+.manual-refresh-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  font-size: 0.7rem;
+}
+
+.manual-refresh-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.manual-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .collected-amount {
@@ -205,6 +405,63 @@ export default {
   font-weight: 700;
   margin: 0;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.collected-amount.updating {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+.loading-indicator,
+.error-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.loading-indicator i {
+  animation: spin 1s linear infinite;
+}
+
+.error-indicator {
+  color: rgba(255, 255, 255, 0.7);
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.retry-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.auto-refresh-info {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.65rem;
+  margin-top: 0.25rem;
+  font-weight: 400;
+  flex-wrap: wrap;
+}
+
+.last-updated {
+  opacity: 0.8;
 }
 
 .collected-subtitle {
@@ -413,6 +670,11 @@ export default {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .collected-section {

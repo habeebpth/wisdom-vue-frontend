@@ -544,6 +544,61 @@ export const updateUserProfile = async (userData) => {
   }
 }
 
+/**
+ * Gets the total collected amount from backend
+ * @returns {Promise} Promise object with collected amount data
+ */
+export const getCollectedAmount = async () => {
+  try {
+    console.log('Fetching collected amount from API...');
+    
+    const response = await apiClient.get('/collected-so-far')
+    
+    console.log('Collected amount API response:', response.data);
+    
+    // Handle different possible response formats
+    let collectedAmount = 0;
+    
+    if (response.data) {
+      // Check various possible field names the API might use
+      collectedAmount = response.data.collected_amount || 
+                       response.data.totalCollected || 
+                       response.data.amount || 
+                       response.data.total || 
+                       response.data.collected || 
+                       0;
+    }
+    
+    // Format the amount as currency
+    const formattedAmount = new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(collectedAmount);
+    
+    console.log('Formatted collected amount:', formattedAmount);
+    
+    return {
+      success: true,
+      amount: collectedAmount,
+      formattedAmount: formattedAmount,
+      rawData: response.data
+    };
+    
+  } catch (error) {
+    console.error('Failed to get collected amount:', error);
+    
+    // Return a fallback response instead of throwing
+    return {
+      success: false,
+      amount: 0,
+      formattedAmount: '₹0.00',
+      error: error.message
+    };
+  }
+}
+
 // Helper function to format completion date
 const formatCompletionDate = (year, month) => {
   if (!year || !month) return null;
