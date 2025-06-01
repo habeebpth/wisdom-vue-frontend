@@ -9,50 +9,34 @@ export default createStore({
       namespaced: true,
       state: () => ({
         name: '',
-        mobile: '',
-        countryCode: '91', // Add countryCode to state
+        mobile: '', // Always store with country code like "+91-9876543210"
         hasUserInfo: false
       }),
       mutations: {
-        setUserInfo(state, { name, mobile, countryCode }) {
+        setUserInfo(state, { name, mobile }) {
           state.name = name
-          state.mobile = mobile
-          state.countryCode = countryCode || '91' // Default to +91 if not provided
-          state.hasUserInfo = !!(name && name.trim()) // Set to true if name exists
-        },
-        clearUserInfo(state) {
-          state.name = ''
-          state.mobile = ''
-          state.countryCode = '91'
-          state.hasUserInfo = false
-        }
-      },
-      actions: {
-        saveUserInfo({ commit }, userData) {
-          console.log('Saving user info:', userData)
-          
-          // Save to local storage
-          saveUserInfo(userData)
-          
-          // Update state
-          commit('setUserInfo', userData)
-        },
-        clearUserInfo({ commit }) {
-          commit('clearUserInfo')
+          state.mobile = mobile // Should be in format "+91-9876543210"
+          state.hasUserInfo = !!(name && name.trim())
         }
       },
       getters: {
         userInfo: (state) => ({
           name: state.name,
           mobile: state.mobile,
-          countryCode: state.countryCode,
           hasUserInfo: state.hasUserInfo
         }),
-        hasValidUserInfo: (state) => {
-          return !!(state.name && state.name.trim())
-        },
-        fullMobileNumber: (state) => {
-          return state.countryCode + state.mobile
+        // Parse mobile number to get country code and number separately
+        parsedMobile: (state) => {
+          if (!state.mobile) return { countryCode: '+91', number: '' }
+
+          const match = state.mobile.match(/^\+(\d+)-(.+)$/)
+          if (match) {
+            return {
+              countryCode: `+${match[1]}`,
+              number: match[2]
+            }
+          }
+          return { countryCode: '+91', number: state.mobile }
         }
       }
     },
@@ -69,7 +53,7 @@ export default createStore({
         currentStep: 1,
         transactionId: '',
         donationDate: null,
-        
+
         // History collections
         paymentHistory: [],
         offerHistory: []
@@ -104,7 +88,7 @@ export default createStore({
           state.transactionId = transactionId
           state.donationDate = date
         },
-        
+
         // Payment history mutations
         setPaymentHistory(state, history) {
           state.paymentHistory = history
@@ -114,7 +98,7 @@ export default createStore({
           // Save updated history to localStorage
           savePaymentHistory(state.paymentHistory)
         },
-        
+
         // Offer history mutations
         setOfferHistory(state, history) {
           state.offerHistory = history
@@ -130,10 +114,10 @@ export default createStore({
         async loadPaymentHistory({ commit, rootState }) {
           try {
             console.log('Loading payment history from store action...');
-            
+
             const userInfo = rootState.user;
             console.log('User info in store action:', userInfo);
-            
+
             if (!userInfo.mobile) {
               console.warn('No mobile number available, skipping server fetch');
               // Still load from localStorage if available
@@ -144,7 +128,7 @@ export default createStore({
 
             // Show some loading state if needed
             const serverHistory = await fetchServerPaymentHistory(userInfo.mobile);
-            
+
             if (serverHistory && serverHistory.length > 0) {
               console.log('Server payment history loaded:', serverHistory);
               commit('setPaymentHistory', serverHistory);
@@ -155,10 +139,10 @@ export default createStore({
               const localHistory = getPaymentHistory()
               commit('setPaymentHistory', localHistory)
             }
-            
+
           } catch (error) {
             console.error('Error in loadPaymentHistory action:', error);
-            
+
             // Fallback to localStorage on error
             try {
               const localHistory = getPaymentHistory()
@@ -171,15 +155,15 @@ export default createStore({
             }
           }
         },
-        
+
         // Load offer history from localStorage and potentially from server
         async loadOfferHistory({ commit, rootState }) {
           try {
             console.log('Loading offer history from store action...');
-            
+
             const userInfo = rootState.user;
             console.log('User info in store action:', userInfo);
-            
+
             if (!userInfo.mobile) {
               console.warn('No mobile number available, skipping server fetch');
               // Still load from localStorage if available
@@ -189,7 +173,7 @@ export default createStore({
             }
 
             const serverHistory = await fetchServerOfferHistory(userInfo.mobile);
-            
+
             if (serverHistory && serverHistory.length > 0) {
               console.log('Server offer history loaded:', serverHistory);
               commit('setOfferHistory', serverHistory);
@@ -200,10 +184,10 @@ export default createStore({
               const localHistory = getLocalOfferHistory()
               commit('setOfferHistory', localHistory)
             }
-            
+
           } catch (error) {
             console.error('Error in loadOfferHistory action:', error);
-            
+
             // Fallback to localStorage on error
             try {
               const localHistory = getLocalOfferHistory()
@@ -216,11 +200,11 @@ export default createStore({
             }
           }
         },
-        
+
         // Enhanced transaction saving
         saveTransaction({ commit, state, rootState }, transactionDetails) {
           console.log('Saving transaction:', transactionDetails);
-          
+
           const payment = {
             transactionId: transactionDetails.transactionId,
             amount: state.amount,
@@ -229,19 +213,19 @@ export default createStore({
             receiptUrl: transactionDetails.receiptUrl || null,
             status: 'completed'
           }
-          
+
           console.log('Payment object to save:', payment);
-          
+
           // Add to state and persist
           commit('addPaymentToHistory', payment)
-          
+
           // Set current transaction details
           commit('setTransactionDetails', {
             transactionId: transactionDetails.transactionId,
             date: transactionDetails.date || new Date().toISOString()
           })
         },
-        
+
         // Enhanced offer saving
         addOfferToHistory({ commit }, offerData) {
           console.log('Adding offer to history:', offerData);

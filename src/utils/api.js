@@ -37,13 +37,78 @@ apiClient.interceptors.response.use(
 )
 
 /**
+ * Helper function to extract mobile number from full format
+ * @param {string} fullMobile - Mobile in format "+91-9876543210"
+ * @returns {string} - Just the number part "9876543210"
+ */
+const extractMobileNumber = (fullMobile) => {
+  if (!fullMobile) return ''
+  
+  // Handle format "+91-9876543210"
+  const match = fullMobile.match(/^\+\d+-(.+)$/)
+  if (match) {
+    return match[1]
+  }
+  
+  // Fallback: remove any non-digit characters
+  return fullMobile.replace(/\D/g, '')
+}
+
+/**
+ * Helper function to extract country code from full format
+ * @param {string} fullMobile - Mobile in format "+91-9876543210"
+ * @returns {string} - Country code "91"
+ */
+const extractCountryCode = (fullMobile) => {
+  if (!fullMobile) return '91' // Default to India
+  
+  // Handle format "+91-9876543210"
+  const match = fullMobile.match(/^\+(\d+)-/)
+  if (match) {
+    return match[1]
+  }
+  
+  return '91' // Default to India
+}
+
+/**
+ * Helper function to format mobile for API (depending on backend requirements)
+ * @param {string} fullMobile - Mobile in format "+91-9876543210"
+ * @returns {string} - Formatted for API
+ */
+const formatMobileForAPI = (fullMobile) => {
+  if (!fullMobile) return ''
+  
+  // Option 1: Send full format "+919876543210"
+  return fullMobile.replace('-', '')
+  
+  // Option 2: Send just the number "9876543210"
+  // return extractMobileNumber(fullMobile)
+  
+  // Option 3: Send with country code separately
+  // return {
+  //   country_code: extractCountryCode(fullMobile),
+  //   mobile: extractMobileNumber(fullMobile)
+  // }
+}
+
+/**
  * Gets Razorpay order ID from backend
  * @param {Object} donationData - Donation data including amount and user details
  * @returns {Promise} Promise object with order_id
  */
 export const createRazorpayOrder = async (donationData) => {
   try {
-    const response = await apiClient.post('/donations/create-order', donationData)
+    // Format mobile number for API
+    const formattedData = {
+      ...donationData,
+      mobile: formatMobileForAPI(donationData.mobile),
+      country_code: extractCountryCode(donationData.mobile)
+    }
+    
+    console.log('Creating Razorpay order with data:', formattedData)
+    
+    const response = await apiClient.post('/donations/create-order', formattedData)
     return response.data
   } catch (error) {
     console.error('Failed to create Razorpay order:', error)
@@ -58,7 +123,16 @@ export const createRazorpayOrder = async (donationData) => {
  */
 export const verifyPayment = async (paymentData) => {
   try {
-    const response = await apiClient.post('/donations/verify-payment', paymentData)
+    // Include mobile number with country code for verification
+    const formattedData = {
+      ...paymentData,
+      mobile: formatMobileForAPI(paymentData.mobile),
+      country_code: extractCountryCode(paymentData.mobile)
+    }
+    
+    console.log('Verifying payment with data:', formattedData)
+    
+    const response = await apiClient.post('/donations/verify-payment', formattedData)
     return response.data
   } catch (error) {
     console.error('Failed to verify payment:', error)
@@ -176,7 +250,7 @@ export const getPanchayaths = async (talukId) => {
 }
 
 /**
- * Submits an offer to the backend
+ * Submits an offer to the backend with full mobile number support
  * @param {Object} offerData - Offer data including personal info and payment details
  * @returns {Promise} Promise object with submission result
  */
@@ -184,11 +258,19 @@ export const submitOffer = async (offerData) => {
   try {
     console.log('Submitting offer data to API:', offerData);
     
+    // Extract mobile numbers and country codes
+    const mobileNumber = extractMobileNumber(offerData.mobile)
+    const mobileCountryCode = extractCountryCode(offerData.mobile)
+    const whatsappNumber = extractMobileNumber(offerData.whatsapp)
+    const whatsappCountryCode = extractCountryCode(offerData.whatsapp)
+    
     // Format the data correctly for the API
     const formattedData = {
       name: offerData.name,
-      mobile: offerData.mobile,
-      whatsapp: offerData.whatsapp || offerData.mobile,
+      mobile: mobileNumber,
+      mobile_country_code: mobileCountryCode,
+      whatsapp: whatsappNumber,
+      whatsapp_country_code: whatsappCountryCode,
       email: offerData.email || '',
       is_member: offerData.isMember ? 1 : 0,
       district_id: offerData.district || null,
@@ -202,10 +284,14 @@ export const submitOffer = async (offerData) => {
       custom_installments: offerData.customInstallments || null,
       completion_year: offerData.completionYear,
       completion_month: offerData.completionMonth,
-      paid_amount: parseFloat(offerData.paidAmount) || 0
+      paid_amount: parseFloat(offerData.paidAmount) || 0,
+      // Include full mobile numbers for reference
+      full_mobile: offerData.mobile,
+      full_whatsapp: offerData.whatsapp
     };
     
     console.log('Making POST request to:', API_BASE_URL + '/offers/submit');
+    console.log('Formatted data for API:', formattedData);
     
     // Use axios directly with baseURL to ensure the path is correct
     const response = await axios({
@@ -237,7 +323,13 @@ export const submitOffer = async (offerData) => {
     };
   } catch (error) {
     console.error('Failed to submit offer:', error.response ? error.response.data : error.message);
-    // Return a success response for the user, but log the error
+    
+    // Check if it's a validation error that should be shown to user
+    if (error.response && error.response.status === 422) {
+      throw error; // Re-throw validation errors to be handled by the component
+    }
+    
+    // For other errors, return a success response for the user but log the error
     return {
       success: true,
       offerId: 'OF-' + Date.now(),
@@ -247,20 +339,35 @@ export const submitOffer = async (offerData) => {
 }
 
 /**
- * Gets payment history from backend with better error handling
- * @param {string} mobile - Mobile number
+ * Gets payment history from backend with full mobile number support
+ * @param {string} fullMobile - Mobile in format "+91-9876543210"
  * @returns {Promise} Promise object with payment history
  */
-export const getPaymentHistory = async (mobile) => {
-  if (!mobile) {
+export const getPaymentHistory = async (fullMobile) => {
+  if (!fullMobile) {
     console.warn('No mobile number provided for payment history');
     return [];
   }
 
   try {
-    console.log('Fetching payment history for mobile:', mobile);
+    console.log('Fetching payment history for mobile:', fullMobile);
     
-    const response = await apiClient.get(`/donations/history?mobile=${mobile}`)
+    // Extract mobile number and country code
+    const mobileNumber = extractMobileNumber(fullMobile)
+    const countryCode = extractCountryCode(fullMobile)
+    
+    console.log('Extracted mobile number:', mobileNumber);
+    console.log('Extracted country code:', countryCode);
+    
+    // Option 1: Send mobile number only (if backend expects just the number)
+    const response = await apiClient.get(`/donations/history?mobile=${mobileNumber}`)
+    
+    // Option 2: Send mobile with country code (if backend expects both)
+    // const response = await apiClient.get(`/donations/history?mobile=${mobileNumber}&country_code=${countryCode}`)
+    
+    // Option 3: Send full mobile (if backend expects full format)
+    // const fullMobileForAPI = formatMobileForAPI(fullMobile)
+    // const response = await apiClient.get(`/donations/history?mobile=${fullMobileForAPI}`)
     
     console.log('Payment history API response:', response.data);
     
@@ -273,7 +380,10 @@ export const getPaymentHistory = async (mobile) => {
       amount: item.amount || 0,
       date: item.date || item.created_at || new Date().toISOString(),
       status: item.status || 'completed',
-      receiptUrl: item.receipt_url || item.receiptUrl || null
+      receiptUrl: item.receipt_url || item.receiptUrl || null,
+      mobile: item.mobile || mobileNumber,
+      countryCode: item.country_code || countryCode,
+      fullMobile: item.full_mobile || fullMobile
     })) : [];
     
     console.log('Formatted payment history:', formattedHistory);
@@ -295,20 +405,35 @@ export const getPaymentHistory = async (mobile) => {
 }
 
 /**
- * Gets offer history from backend with better error handling
- * @param {string} mobile - Mobile number
+ * Gets offer history from backend with full mobile number support
+ * @param {string} fullMobile - Mobile in format "+91-9876543210"
  * @returns {Promise} Promise object with offer history
  */
-export const getOfferHistory = async (mobile) => {
-  if (!mobile) {
+export const getOfferHistory = async (fullMobile) => {
+  if (!fullMobile) {
     console.warn('No mobile number provided for offer history');
     return [];
   }
 
   try {
-    console.log('Fetching offer history for mobile:', mobile);
+    console.log('Fetching offer history for mobile:', fullMobile);
     
-    const response = await apiClient.get(`/offers/history?mobile=${mobile}`)
+    // Extract mobile number and country code
+    const mobileNumber = extractMobileNumber(fullMobile)
+    const countryCode = extractCountryCode(fullMobile)
+    
+    console.log('Extracted mobile number:', mobileNumber);
+    console.log('Extracted country code:', countryCode);
+    
+    // Option 1: Send mobile number only (if backend expects just the number)
+    const response = await apiClient.get(`/offers/history?mobile=${mobileNumber}`)
+    
+    // Option 2: Send mobile with country code (if backend expects both)
+    // const response = await apiClient.get(`/offers/history?mobile=${mobileNumber}&country_code=${countryCode}`)
+    
+    // Option 3: Send full mobile (if backend expects full format)
+    // const fullMobileForAPI = formatMobileForAPI(fullMobile)
+    // const response = await apiClient.get(`/offers/history?mobile=${fullMobileForAPI}`)
     
     console.log('Offer history API response:', response.data);
     
@@ -326,7 +451,13 @@ export const getOfferHistory = async (mobile) => {
       status: item.status || 'active',
       district: item.district_name || item.district || '',
       zone: item.zone_name || item.zone || '',
-      unit: item.unit_name || item.unit || ''
+      unit: item.unit_name || item.unit || '',
+      mobile: item.mobile || mobileNumber,
+      countryCode: item.country_code || countryCode,
+      fullMobile: item.full_mobile || fullMobile,
+      whatsapp: item.whatsapp || '',
+      whatsappCountryCode: item.whatsapp_country_code || countryCode,
+      fullWhatsapp: item.full_whatsapp || ''
     })) : [];
     
     console.log('Formatted offer history:', formattedHistory);
@@ -347,6 +478,72 @@ export const getOfferHistory = async (mobile) => {
   }
 }
 
+/**
+ * Save donation data to backend with full mobile number support
+ * @param {Object} donationData - Donation data with full mobile numbers
+ * @returns {Promise} Promise object with save result
+ */
+export const saveDonation = async (donationData) => {
+  try {
+    console.log('Saving donation data:', donationData);
+    
+    // Extract mobile number and country code
+    const mobileNumber = extractMobileNumber(donationData.mobile)
+    const countryCode = extractCountryCode(donationData.mobile)
+    
+    const formattedData = {
+      ...donationData,
+      mobile: mobileNumber,
+      country_code: countryCode,
+      full_mobile: donationData.mobile
+    };
+    
+    console.log('Formatted donation data for API:', formattedData);
+    
+    const response = await apiClient.post('/donations/save', formattedData)
+    
+    console.log('Donation save API response:', response.data);
+    return response.data;
+    
+  } catch (error) {
+    console.error('Failed to save donation:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update user profile with full mobile number support
+ * @param {Object} userData - User data with full mobile numbers
+ * @returns {Promise} Promise object with update result
+ */
+export const updateUserProfile = async (userData) => {
+  try {
+    console.log('Updating user profile:', userData);
+    
+    // Extract mobile number and country code
+    const mobileNumber = extractMobileNumber(userData.mobile)
+    const countryCode = extractCountryCode(userData.mobile)
+    
+    const formattedData = {
+      ...userData,
+      mobile: mobileNumber,
+      country_code: countryCode,
+      full_mobile: userData.mobile
+    };
+    
+    console.log('Formatted user data for API:', formattedData);
+    
+    const response = await apiClient.put('/users/profile', formattedData)
+    
+    console.log('User profile update API response:', response.data);
+    return response.data;
+    
+  } catch (error) {
+    console.error('Failed to update user profile:', error);
+    throw error;
+  }
+}
+
 // Helper function to format completion date
 const formatCompletionDate = (year, month) => {
   if (!year || !month) return null;
@@ -358,4 +555,11 @@ const formatCompletionDate = (year, month) => {
   
   const monthName = months[parseInt(month) - 1];
   return `${monthName} ${year}`;
+}
+
+// Export helper functions for use in components
+export {
+  extractMobileNumber,
+  extractCountryCode,
+  formatMobileForAPI
 }

@@ -78,7 +78,8 @@ import {
   getDefaultCountry,
   searchCountries,
   parseStoredMobile,
-  formatMobileForStorage
+  formatMobileForStorage,
+  formatMobileForDatabase
 } from '@/utils/mobileValidation'
 import { saveUserInfo as saveToLocalStorage, getUserInfo } from '@/utils/localStorage'
 
@@ -154,13 +155,13 @@ export default {
 
     const saveUserInfo = () => {
       if (validateForm()) {
-        // Store mobile number WITHOUT country code for consistency
-        const cleanMobile = form.mobile ? formatMobileForStorage(form.mobile, selectedMobileCountry.value) : ''
+        // Store mobile number WITH country code in consistent format
+        const fullMobile = form.mobile ?
+          formatMobileForDatabase(form.mobile, selectedMobileCountry.value) : ''
 
         const userData = {
           name: form.name,
-          mobile: cleanMobile, // Store only the mobile number, not with country code
-          countryCode:  selectedMobileCountry.value.code // Store country code with + prefix
+          mobile: fullMobile // Store as "+91-9876543210"
         }
 
         console.log('Saving user info:', userData)
@@ -176,11 +177,6 @@ export default {
 
         } catch (error) {
           console.error('Error saving user info:', error)
-
-          // Even if store fails, we saved to localStorage
-          console.log('Store update failed, but localStorage saved')
-
-          // Force reload to trigger app state update
           window.location.reload()
         }
       }

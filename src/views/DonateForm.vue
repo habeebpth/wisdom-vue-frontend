@@ -195,7 +195,7 @@
               </div>
               <div class="flex justify-between py-2 border-b border-gray-200">
                 <span class="text-gray-600">Mobile:</span>
-                <span class="font-semibold">{{ form.mobile }}</span>
+                <span class="font-semibold">{{ form.mobile }} {{ selectedMobileCountry.value }}</span>
               </div>
               <div class="flex justify-between py-2">
                 <span class="text-gray-600">Location:</span>
@@ -239,6 +239,8 @@ import {
   searchCountries,
   parseStoredMobile,
   formatMobileForStorage,
+  parseStoredMobileForDisplay,
+  formatMobileForDatabase,
   formatMobileForDisplay
 } from '@/utils/mobileValidation'
 import { getDistricts, getZones, getUnits, createRazorpayOrder, verifyPayment } from '@/utils/api'
@@ -344,12 +346,12 @@ export default {
         hideLoader()
       }
 
-      // Parse stored mobile number and set country/mobile correctly
+      // Parse stored mobile number correctly
       const storedMobile = store.state.user.mobile
       if (storedMobile) {
         console.log('Stored mobile from store:', storedMobile)
 
-        const parsed = parseStoredMobile(storedMobile)
+        const parsed = parseStoredMobileForDisplay(storedMobile)
         console.log('Parsed mobile:', parsed)
 
         // Set the country and mobile number correctly
@@ -357,7 +359,6 @@ export default {
         form.mobile = parsed.mobileNumber
       }
     })
-
     // Handle district change
     const onDistrictChange = async () => {
       form.zone = ''
@@ -462,28 +463,27 @@ export default {
 
     // Confirm user details and proceed to payment
     const confirmDetails = () => {
-  if (validateForm()) {
-    // Save user info to store (mobile number without country code)
-    const cleanMobile = formatMobileForStorage(form.mobile, selectedMobileCountry.value)
+      if (validateForm()) {
+        // Create full mobile with country code for storage and API
+        const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
 
-    store.commit('payment/setUserDetails', {
-      name: form.name,
-      mobile: cleanMobile, // Store without country code
-      district: form.district,
-      zone: form.zone,
-      unit: form.unit
-    })
+        store.commit('payment/setUserDetails', {
+          name: form.name,
+          mobile: fullMobile, // Store with country code
+          district: form.district,
+          zone: form.zone,
+          unit: form.unit
+        })
 
-    // Also update user store with country code
-    store.commit('user/setUserInfo', {
-      name: form.name,
-      mobile: cleanMobile,
-      countryCode: '+' + selectedMobileCountry.value.code // Store with + prefix
-    })
+        // Also update user store
+        store.commit('user/setUserInfo', {
+          name: form.name,
+          mobile: fullMobile
+        })
 
-    currentStep.value++
-  }
-}
+        currentStep.value++
+      }
+    }
 
     // Initiate Razorpay payment
     const initiatePayment = async () => {

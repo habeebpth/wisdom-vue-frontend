@@ -108,7 +108,8 @@
               <!-- For Non-Members -->
               <template v-else>
                 <div>
-                  <label for="district" class="form-label">ജില്ല (District) <span class="text-gray-500">(Optional)</span></label>
+                  <label for="district" class="form-label">ജില്ല (District) <span
+                      class="text-gray-500">(Optional)</span></label>
                   <select id="district" v-model="form.district" class="form-select">
                     <option value="">Select a district</option>
                     <option v-for="district in keralaDistricts" :key="district.id" :value="district.id">
@@ -119,38 +120,26 @@
                 </div>
 
                 <div>
-                  <label for="taluk" class="form-label">താലൂക്ക് (Taluk) <span class="text-gray-500">(Optional)</span></label>
-                  <input 
-                    id="taluk" 
-                    v-model="form.taluk" 
-                    type="text" 
-                    class="form-input" 
-                    placeholder="Enter taluk name"
-                  />
+                  <label for="taluk" class="form-label">താലൂക്ക് (Taluk) <span
+                      class="text-gray-500">(Optional)</span></label>
+                  <input id="taluk" v-model="form.taluk" type="text" class="form-input"
+                    placeholder="Enter taluk name" />
                   <p v-if="errors.taluk" class="mt-1 text-sm text-red-600">{{ errors.taluk }}</p>
                 </div>
 
                 <div>
-                  <label for="panchayath" class="form-label">പഞ്ചായത്ത് (Panchayath) <span class="text-gray-500">(Optional)</span></label>
-                  <input 
-                    id="panchayath" 
-                    v-model="form.panchayath" 
-                    type="text" 
-                    class="form-input" 
-                    placeholder="Enter panchayath name"
-                  />
+                  <label for="panchayath" class="form-label">പഞ്ചായത്ത് (Panchayath) <span
+                      class="text-gray-500">(Optional)</span></label>
+                  <input id="panchayath" v-model="form.panchayath" type="text" class="form-input"
+                    placeholder="Enter panchayath name" />
                   <p v-if="errors.panchayath" class="mt-1 text-sm text-red-600">{{ errors.panchayath }}</p>
                 </div>
 
                 <div>
-                  <label for="ward" class="form-label">വാർഡ് (Ward) <span class="text-gray-500">(Optional)</span></label>
-                  <input 
-                    id="ward" 
-                    v-model="form.ward" 
-                    type="text" 
-                    class="form-input"
-                    placeholder="Enter ward number/name" 
-                  />
+                  <label for="ward" class="form-label">വാർഡ് (Ward) <span
+                      class="text-gray-500">(Optional)</span></label>
+                  <input id="ward" v-model="form.ward" type="text" class="form-input"
+                    placeholder="Enter ward number/name" />
                 </div>
               </template>
             </div>
@@ -184,34 +173,24 @@
                 <div class="flex">
                   <!-- Country Code Selector for Mobile -->
                   <div class="relative">
-                    <button 
-                      type="button"
-                      @click="showMobileCountryDropdown = !showMobileCountryDropdown"
-                      class="flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    >
+                    <button type="button" @click="showMobileCountryDropdown = !showMobileCountryDropdown"
+                      class="flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
                       <span class="mr-2">{{ selectedMobileCountry.flag }}</span>
                       <span class="mr-1">{{ selectedMobileCountry.code }}</span>
                       <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    
+
                     <!-- Mobile Country Dropdown -->
-                    <div v-if="showMobileCountryDropdown" class="absolute top-full left-0 z-50 w-80 max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg">
+                    <div v-if="showMobileCountryDropdown"
+                      class="absolute top-full left-0 z-50 w-80 max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg">
                       <div class="p-2">
-                        <input 
-                          v-model="mobileCountrySearch" 
-                          type="text" 
-                          placeholder="Search countries..."
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
+                        <input v-model="mobileCountrySearch" type="text" placeholder="Search countries..."
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
                       </div>
                       <div class="max-h-48 overflow-y-auto">
-                        <button
-                          v-for="country in filteredMobileCountries"
-                          :key="country.code"
-                          type="button"
+                        <button v-for="country in filteredMobileCountries" :key="country.code" type="button"
                           @click="selectMobileCountry(country)"
-                          class="w-full flex items-center px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                        >
+                          class="w-full flex items-center px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">
                           <span class="mr-3">{{ country.flag }}</span>
                           <span class="mr-2 text-sm font-mono">{{ country.code }}</span>
                           <span class="text-sm">{{ country.name }}</span>
@@ -219,16 +198,11 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <!-- Mobile Number Input -->
-                  <input 
-                    id="mobile" 
-                    v-model="form.mobile" 
-                    type="tel" 
-                    class="flex-1 form-input rounded-l-none border-l-0 focus:ring-green-500 focus:border-green-500" 
-                    required
-                    placeholder="Enter mobile number"
-                  />
+                  <input id="mobile" v-model="form.mobile" type="tel"
+                    class="flex-1 form-input rounded-l-none border-l-0 focus:ring-green-500 focus:border-green-500"
+                    required placeholder="Enter mobile number" />
                 </div>
                 <div class="text-xs text-gray-500 mt-1">
                   Expected format: {{ selectedMobileCountry.format }} for {{ selectedMobileCountry.name }}
@@ -238,50 +212,37 @@
 
               <!-- WhatsApp Same as Mobile Checkbox -->
               <div class="flex items-center space-x-3">
-                <input 
-                  id="sameWhatsApp" 
-                  v-model="sameWhatsAppAsMobile" 
-                  type="checkbox" 
+                <input id="sameWhatsApp" v-model="sameWhatsAppAsMobile" type="checkbox"
                   class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                  @change="onSameWhatsAppChange"
-                />
+                  @change="onSameWhatsAppChange" />
                 <label for="sameWhatsApp" class="text-sm text-gray-700">WhatsApp number same as mobile</label>
               </div>
 
               <!-- WhatsApp Number with Country Code -->
               <div v-if="!sameWhatsAppAsMobile">
-                <label for="whatsapp" class="form-label">വാട്സ്ആപ്പ് (WhatsApp) <span class="text-red-500">*</span></label>
+                <label for="whatsapp" class="form-label">വാട്സ്ആപ്പ് (WhatsApp) <span
+                    class="text-red-500">*</span></label>
                 <div class="flex">
                   <!-- Country Code Selector for WhatsApp -->
                   <div class="relative">
-                    <button 
-                      type="button"
-                      @click="showWhatsAppCountryDropdown = !showWhatsAppCountryDropdown"
-                      class="flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    >
+                    <button type="button" @click="showWhatsAppCountryDropdown = !showWhatsAppCountryDropdown"
+                      class="flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
                       <span class="mr-2">{{ selectedWhatsAppCountry.flag }}</span>
                       <span class="mr-1">{{ selectedWhatsAppCountry.code }}</span>
                       <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    
+
                     <!-- WhatsApp Country Dropdown -->
-                    <div v-if="showWhatsAppCountryDropdown" class="absolute top-full left-0 z-50 w-80 max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg">
+                    <div v-if="showWhatsAppCountryDropdown"
+                      class="absolute top-full left-0 z-50 w-80 max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg">
                       <div class="p-2">
-                        <input 
-                          v-model="whatsappCountrySearch" 
-                          type="text" 
-                          placeholder="Search countries..."
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
+                        <input v-model="whatsappCountrySearch" type="text" placeholder="Search countries..."
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
                       </div>
                       <div class="max-h-48 overflow-y-auto">
-                        <button
-                          v-for="country in filteredWhatsAppCountries"
-                          :key="country.code"
-                          type="button"
+                        <button v-for="country in filteredWhatsAppCountries" :key="country.code" type="button"
                           @click="selectWhatsAppCountry(country)"
-                          class="w-full flex items-center px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                        >
+                          class="w-full flex items-center px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">
                           <span class="mr-3">{{ country.flag }}</span>
                           <span class="mr-2 text-sm font-mono">{{ country.code }}</span>
                           <span class="text-sm">{{ country.name }}</span>
@@ -289,16 +250,11 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <!-- WhatsApp Number Input -->
-                  <input 
-                    id="whatsapp" 
-                    v-model="form.whatsapp" 
-                    type="tel" 
-                    class="flex-1 form-input rounded-l-none border-l-0 focus:ring-green-500 focus:border-green-500" 
-                    required
-                    placeholder="Enter WhatsApp number"
-                  />
+                  <input id="whatsapp" v-model="form.whatsapp" type="tel"
+                    class="flex-1 form-input rounded-l-none border-l-0 focus:ring-green-500 focus:border-green-500"
+                    required placeholder="Enter WhatsApp number" />
                 </div>
                 <div class="text-xs text-gray-500 mt-1">
                   Expected format: {{ selectedWhatsAppCountry.format }} for {{ selectedWhatsAppCountry.name }}
@@ -771,57 +727,58 @@ export default {
 
     // Validate personal information
     const validatePersonalInfoAndContinue = () => {
-  // Reset errors
-  errors.name = ''
-  errors.mobile = ''
-  errors.whatsapp = ''
-  errors.email = ''
+      // Reset errors
+      errors.name = ''
+      errors.mobile = ''
+      errors.whatsapp = ''
+      errors.email = ''
 
-  let isValid = true
+      let isValid = true
 
-  // Validate name
-  if (!form.name.trim()) {
-    errors.name = 'Name is required'
-    isValid = false
-  }
+      // Validate name
+      if (!form.name.trim()) {
+        errors.name = 'Name is required'
+        isValid = false
+      }
 
-  // Validate mobile using global validation
-  const mobileError = validateMobileNumber(form.mobile, selectedMobileCountry.value, 'Mobile')
-  if (mobileError) {
-    errors.mobile = mobileError
-    isValid = false
-  }
+      // Validate mobile using global validation
+      const mobileError = validateMobileNumber(form.mobile, selectedMobileCountry.value, 'Mobile')
+      if (mobileError) {
+        errors.mobile = mobileError
+        isValid = false
+      }
 
-  // Validate WhatsApp (only if not same as mobile)
-  if (!sameWhatsAppAsMobile.value) {
-    const whatsappError = validateMobileNumber(form.whatsapp, selectedWhatsAppCountry.value, 'WhatsApp')
-    if (whatsappError) {
-      errors.whatsapp = whatsappError
-      isValid = false
+      // Validate WhatsApp (only if not same as mobile)
+      if (!sameWhatsAppAsMobile.value) {
+        const whatsappError = validateMobileNumber(form.whatsapp, selectedWhatsAppCountry.value, 'WhatsApp')
+        if (whatsappError) {
+          errors.whatsapp = whatsappError
+          isValid = false
+        }
+      } else {
+        // Auto-sync WhatsApp with mobile
+        form.whatsapp = form.mobile
+        selectedWhatsAppCountry.value = selectedMobileCountry.value
+      }
+
+      // Validate email (if provided)
+      if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+        errors.email = 'Please enter a valid email address'
+        isValid = false
+      }
+
+      if (isValid) {
+        // Save user info to store with full mobile format
+        const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
+
+        store.commit('user/setUserInfo', {
+          name: form.name,
+          mobile: fullMobile
+        })
+
+        nextStep()
+      }
     }
-  } else {
-    // Auto-sync WhatsApp with mobile
-    form.whatsapp = form.mobile
-    selectedWhatsAppCountry.value = selectedMobileCountry.value
-  }
-
-  // Validate email (if provided)
-  if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    errors.email = 'Please enter a valid email address'
-    isValid = false
-  }
-
-  if (isValid) {
-    // Save user info to store with country code
-    store.commit('user/setUserInfo', {
-      name: form.name,
-      mobile: form.mobile,
-      countryCode: '+' + selectedMobileCountry.value.code // Store with + prefix
-    })
-
-    nextStep()
-  }
-}
 
     // Submit offer
     const submitOffer = async () => {
@@ -855,13 +812,16 @@ export default {
           isProcessing.value = true
           showLoader('Submitting your offer...')
 
+          const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
+          const fullWhatsApp = sameWhatsAppAsMobile.value
+            ? fullMobile
+            : formatMobileForDatabase(form.whatsapp, selectedWhatsAppCountry.value)
+
           // Prepare data for the backend API
           const offerData = {
             name: form.name,
-            mobile: `${selectedMobileCountry.value.code}${form.mobile}`,
-            whatsapp: sameWhatsAppAsMobile.value 
-              ? `${selectedMobileCountry.value.code}${form.mobile}`
-              : `${selectedWhatsAppCountry.value.code}${form.whatsapp}`,
+            mobile: fullMobile,
+            whatsapp: fullWhatsApp,
             email: form.email,
             isMember: isMember.value,
             district: form.district,
@@ -936,8 +896,8 @@ export default {
                 paidAmount: 0,
                 remainingAmount: form.offerAmount,
                 installments: form.installmentType === 'custom' ? form.customInstallments : form.installmentType,
-                completionDate: form.completionYear && form.completionMonth 
-                  ? `${getMonthName(form.completionMonth)} ${form.completionYear}` 
+                completionDate: form.completionYear && form.completionMonth
+                  ? `${getMonthName(form.completionMonth)} ${form.completionYear}`
                   : 'Not specified',
                 date: new Date().toISOString(),
                 status: 'active'
