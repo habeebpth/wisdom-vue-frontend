@@ -462,28 +462,28 @@ export default {
 
     // Confirm user details and proceed to payment
     const confirmDetails = () => {
-      if (validateForm()) {
-        // Save user info to store (mobile number without country code)
-        const cleanMobile = formatMobileForStorage(form.mobile, selectedMobileCountry.value)
+  if (validateForm()) {
+    // Save user info to store (mobile number without country code)
+    const cleanMobile = formatMobileForStorage(form.mobile, selectedMobileCountry.value)
 
-        store.commit('payment/setUserDetails', {
-          name: form.name,
-          mobile: cleanMobile, // Store without country code
-          district: form.district,
-          zone: form.zone,
-          unit: form.unit
-        })
+    store.commit('payment/setUserDetails', {
+      name: form.name,
+      mobile: cleanMobile, // Store without country code
+      district: form.district,
+      zone: form.zone,
+      unit: form.unit
+    })
 
-        // Also update user store
-        store.commit('user/setUserInfo', {
-          name: form.name,
-          mobile: cleanMobile,
-          countryCode: selectedMobileCountry.value.code
-        })
+    // Also update user store with country code
+    store.commit('user/setUserInfo', {
+      name: form.name,
+      mobile: cleanMobile,
+      countryCode: '+' + selectedMobileCountry.value.code // Store with + prefix
+    })
 
-        currentStep.value++
-      }
-    }
+    currentStep.value++
+  }
+}
 
     // Initiate Razorpay payment
     const initiatePayment = async () => {

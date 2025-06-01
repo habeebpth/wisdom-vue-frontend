@@ -771,56 +771,57 @@ export default {
 
     // Validate personal information
     const validatePersonalInfoAndContinue = () => {
-      // Reset errors
-      errors.name = ''
-      errors.mobile = ''
-      errors.whatsapp = ''
-      errors.email = ''
+  // Reset errors
+  errors.name = ''
+  errors.mobile = ''
+  errors.whatsapp = ''
+  errors.email = ''
 
-      let isValid = true
+  let isValid = true
 
-      // Validate name
-      if (!form.name.trim()) {
-        errors.name = 'Name is required'
-        isValid = false
-      }
+  // Validate name
+  if (!form.name.trim()) {
+    errors.name = 'Name is required'
+    isValid = false
+  }
 
-      // Validate mobile using global validation
-      const mobileError = validateMobileNumber(form.mobile, selectedMobileCountry.value, 'Mobile')
-      if (mobileError) {
-        errors.mobile = mobileError
-        isValid = false
-      }
+  // Validate mobile using global validation
+  const mobileError = validateMobileNumber(form.mobile, selectedMobileCountry.value, 'Mobile')
+  if (mobileError) {
+    errors.mobile = mobileError
+    isValid = false
+  }
 
-      // Validate WhatsApp (only if not same as mobile)
-      if (!sameWhatsAppAsMobile.value) {
-        const whatsappError = validateMobileNumber(form.whatsapp, selectedWhatsAppCountry.value, 'WhatsApp')
-        if (whatsappError) {
-          errors.whatsapp = whatsappError
-          isValid = false
-        }
-      } else {
-        // Auto-sync WhatsApp with mobile
-        form.whatsapp = form.mobile
-        selectedWhatsAppCountry.value = selectedMobileCountry.value
-      }
-
-      // Validate email (if provided)
-      if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-        errors.email = 'Please enter a valid email address'
-        isValid = false
-      }
-
-      if (isValid) {
-        // Save user info to store
-        store.commit('user/setUserInfo', {
-          name: form.name,
-          mobile: form.mobile
-        })
-
-        nextStep()
-      }
+  // Validate WhatsApp (only if not same as mobile)
+  if (!sameWhatsAppAsMobile.value) {
+    const whatsappError = validateMobileNumber(form.whatsapp, selectedWhatsAppCountry.value, 'WhatsApp')
+    if (whatsappError) {
+      errors.whatsapp = whatsappError
+      isValid = false
     }
+  } else {
+    // Auto-sync WhatsApp with mobile
+    form.whatsapp = form.mobile
+    selectedWhatsAppCountry.value = selectedMobileCountry.value
+  }
+
+  // Validate email (if provided)
+  if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    errors.email = 'Please enter a valid email address'
+    isValid = false
+  }
+
+  if (isValid) {
+    // Save user info to store with country code
+    store.commit('user/setUserInfo', {
+      name: form.name,
+      mobile: form.mobile,
+      countryCode: '+' + selectedMobileCountry.value.code // Store with + prefix
+    })
+
+    nextStep()
+  }
+}
 
     // Submit offer
     const submitOffer = async () => {

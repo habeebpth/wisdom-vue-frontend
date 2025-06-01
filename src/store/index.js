@@ -10,17 +10,20 @@ export default createStore({
       state: () => ({
         name: '',
         mobile: '',
+        countryCode: '91', // Add countryCode to state
         hasUserInfo: false
       }),
       mutations: {
-        setUserInfo(state, { name, mobile }) {
+        setUserInfo(state, { name, mobile, countryCode }) {
           state.name = name
           state.mobile = mobile
+          state.countryCode = countryCode || '91' // Default to +91 if not provided
           state.hasUserInfo = !!(name && name.trim()) // Set to true if name exists
         },
         clearUserInfo(state) {
           state.name = ''
           state.mobile = ''
+          state.countryCode = '91'
           state.hasUserInfo = false
         }
       },
@@ -42,10 +45,14 @@ export default createStore({
         userInfo: (state) => ({
           name: state.name,
           mobile: state.mobile,
+          countryCode: state.countryCode,
           hasUserInfo: state.hasUserInfo
         }),
         hasValidUserInfo: (state) => {
           return !!(state.name && state.name.trim())
+        },
+        fullMobileNumber: (state) => {
+          return state.countryCode + state.mobile
         }
       }
     },

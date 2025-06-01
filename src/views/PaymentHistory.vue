@@ -196,9 +196,62 @@ export default {
       loadHistories()
     })
 
+    const loadHistories = async () => {
+      console.log('Loading histories...');
+
+      const userInfo = store.getters['user/userInfo'] // Use getter instead
+      console.log('User info:', userInfo);
+
+      // Check if user has mobile number
+      if (!userInfo.mobile) {
+        console.warn('No mobile number found for user:', userInfo);
+        // You might want to show a message or redirect user to update their info
+        return;
+      }
+
+      try {
+        showLoader('Loading your payment history...')
+
+        // Use the fullMobileNumber getter or manually construct it
+        const fullMobile = userInfo.countryCode + userInfo.mobile
+        console.log('Full mobile number for API:', fullMobile);
+
+        // Call API functions with better error handling
+        const [paymentData, offerData] = await Promise.allSettled([
+          getPaymentHistory(fullMobile).catch(err => {
+            console.error('Payment history API error:', err);
+            return []; // Return empty array on error
+          }),
+          getOfferHistory(fullMobile).catch(err => {
+            console.error('Offer history API error:', err);
+            return []; // Return empty array on error
+          })
+        ]);
+
+        // Handle the settled promises
+        const payments = paymentData.status === 'fulfilled' ? paymentData.value : [];
+        const offers = offerData.status === 'fulfilled' ? offerData.value : [];
+
+        console.log('Payment data received:', payments);
+        console.log('Offer data received:', offers);
+
+        // Store the data in Vuex store
+        store.commit('payment/setPaymentHistory', payments)
+        store.commit('payment/setOfferHistory', offers)
+
+        hideLoader()
+      } catch (error) {
+        console.error('Failed to load histories:', error)
+        hideLoader()
+
+        // Show user-friendly error message
+        alert('Failed to load history. Please check your connection and try again.');
+      }
+    }
+
     // const loadHistories = async () => {
     //   console.log(loadHistories);
-      
+
     //   const userInfo = store.state.user.userInfo
     //   if (userInfo && userInfo.mobile) {
     //     try {
@@ -222,54 +275,7 @@ export default {
     //   }
     // }
 
-    const loadHistories = async () => {
-  console.log('Loading histories...');
-  
-  const userInfo = store.state.user
-  console.log('User info:', userInfo);
-  
-  // Check if user has mobile number
-  if (!userInfo.mobile) {
-    console.warn('No mobile number found for user:', userInfo);
-    // You might want to show a message or redirect user to update their info
-    return;
-  }
-
-  try {
-    showLoader('Loading your payment history...')
-
-    // Call API functions with better error handling
-    const [paymentData, offerData] = await Promise.allSettled([
-      getPaymentHistory(userInfo.countryCode + userInfo.mobile).catch(err => {
-        console.error('Payment history API error:', err);
-        return []; // Return empty array on error
-      }),
-      getOfferHistory(userInfo.countryCode + userInfo.mobile).catch(err => {
-        console.error('Offer history API error:', err);
-        return []; // Return empty array on error
-      })
-    ]);
-
-    // Handle the settled promises
-    const payments = paymentData.status === 'fulfilled' ? paymentData.value : [];
-    const offers = offerData.status === 'fulfilled' ? offerData.value : [];
-
-    console.log('Payment data received:', payments);
-    console.log('Offer data received:', offers);
-
-    // Store the data in Vuex store
-    store.commit('payment/setPaymentHistory', payments)
-    store.commit('payment/setOfferHistory', offers)
-
-    hideLoader()
-  } catch (error) {
-    console.error('Failed to load histories:', error)
-    hideLoader()
     
-    // Show user-friendly error message
-    alert('Failed to load history. Please check your connection and try again.');
-  }
-}
 
     const formatDate = (dateString) => {
       if (!dateString) return ''

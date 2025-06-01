@@ -1,58 +1,44 @@
 <template>
-  <div style="position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 0 1rem;">
-    <div style="background-color: white; border-radius: 0.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 28rem; width: 100%; padding: 1.5rem; animation: fadeIn 0.3s ease-in-out;">
-      <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem;">Welcome to Wisdom Donations</h2>
+  <div
+    style="position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 0 1rem;">
+    <div
+      style="background-color: white; border-radius: 0.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-width: 28rem; width: 100%; padding: 1.5rem; animation: fadeIn 0.3s ease-in-out;">
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem;">Welcome to Wisdom Donations
+      </h2>
       <p style="color: #4b5563; margin-bottom: 1.5rem;">
         Please provide your information to continue. This will help us personalize your experience.
       </p>
-      
+
       <form @submit.prevent="saveUserInfo">
         <div style="margin-bottom: 1rem;">
           <label for="name" class="form-label">Name <span style="color: #ef4444;">*</span></label>
-          <input 
-            id="name" 
-            v-model="form.name" 
-            type="text" 
-            class="form-input" 
-            required
-            placeholder="Enter your name"
-          />
+          <input id="name" v-model="form.name" type="text" class="form-input" required placeholder="Enter your name" />
           <p v-if="errors.name" style="margin-top: 0.25rem; font-size: 0.875rem; color: #dc2626;">{{ errors.name }}</p>
         </div>
-        
+
         <div style="margin-bottom: 1.5rem;">
           <label for="mobile" class="form-label">Mobile Number</label>
           <div class="flex">
             <!-- Country Code Selector -->
             <div class="relative">
-              <button 
-                type="button"
-                @click="showCountryDropdown = !showCountryDropdown"
-                class="flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
+              <button type="button" @click="showCountryDropdown = !showCountryDropdown"
+                class="flex items-center px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 <span class="mr-2">{{ selectedMobileCountry.flag }}</span>
                 <span class="mr-1">{{ selectedMobileCountry.code }}</span>
                 <i class="fas fa-chevron-down text-xs"></i>
               </button>
-              
+
               <!-- Country Dropdown -->
-              <div v-if="showCountryDropdown" class="absolute top-full left-0 z-50 w-80 max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg">
+              <div v-if="showCountryDropdown"
+                class="absolute top-full left-0 z-50 w-80 max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg">
                 <div class="p-2">
-                  <input 
-                    v-model="countrySearch" 
-                    type="text" 
-                    placeholder="Search countries..."
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <input v-model="countrySearch" type="text" placeholder="Search countries..."
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div class="max-h-48 overflow-y-auto">
-                  <button
-                    v-for="country in filteredCountries"
-                    :key="country.code"
-                    type="button"
+                  <button v-for="country in filteredCountries" :key="country.code" type="button"
                     @click="selectCountry(country)"
-                    class="w-full flex items-center px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                  >
+                    class="w-full flex items-center px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">
                     <span class="mr-3">{{ country.flag }}</span>
                     <span class="mr-2 text-sm font-mono">{{ country.code }}</span>
                     <span class="text-sm">{{ country.name }}</span>
@@ -60,24 +46,22 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Mobile Number Input -->
-            <input 
-              id="mobile" 
-              v-model="form.mobile" 
-              type="tel" 
-              class="flex-1 form-input rounded-l-none border-l-0 focus:ring-blue-500 focus:border-blue-500" 
-              placeholder="Enter mobile number (optional)"
-            />
+            <input id="mobile" v-model="form.mobile" type="tel"
+              class="flex-1 form-input rounded-l-none border-l-0 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter mobile number (optional)" />
           </div>
           <div class="text-xs text-gray-500 mt-1" v-if="form.mobile">
             Expected format: {{ selectedMobileCountry.format }} for {{ selectedMobileCountry.name }}
           </div>
-          <p v-if="errors.mobile" style="margin-top: 0.25rem; font-size: 0.875rem; color: #dc2626;">{{ errors.mobile }}</p>
+          <p v-if="errors.mobile" style="margin-top: 0.25rem; font-size: 0.875rem; color: #dc2626;">{{ errors.mobile }}
+          </p>
         </div>
-        
+
         <div style="display: flex; justify-content: center; margin-top: 1rem;">
-          <button type="submit" style="background-color: #4A90E2; color: white; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer; font-size: 1.125rem; width: 100%; transition: background-color 0.2s ease;">
+          <button type="submit"
+            style="background-color: #4A90E2; color: white; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer; font-size: 1.125rem; width: 100%; transition: background-color 0.2s ease;">
             Save Information
           </button>
         </div>
@@ -89,12 +73,12 @@
 <script>
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
-import { 
-  validateMobileNumber, 
-  getDefaultCountry, 
-  searchCountries, 
+import {
+  validateMobileNumber,
+  getDefaultCountry,
+  searchCountries,
   parseStoredMobile,
-  formatMobileForStorage 
+  formatMobileForStorage
 } from '@/utils/mobileValidation'
 import { saveUserInfo as saveToLocalStorage, getUserInfo } from '@/utils/localStorage'
 
@@ -102,12 +86,12 @@ export default {
   name: 'UserInfoModal',
   setup() {
     const store = useStore()
-    
+
     const form = reactive({
       name: '',
       mobile: ''
     })
-    
+
     const errors = reactive({
       name: '',
       mobile: ''
@@ -133,7 +117,7 @@ export default {
       const existingUserInfo = getUserInfo()
       if (existingUserInfo) {
         form.name = existingUserInfo.name || ''
-        
+
         if (existingUserInfo.mobile) {
           // Parse the stored mobile number
           const parsed = parseStoredMobile(existingUserInfo.mobile)
@@ -142,20 +126,20 @@ export default {
         }
       }
     })
-    
+
     const validateForm = () => {
       let isValid = true
-      
+
       // Reset errors
       errors.name = ''
       errors.mobile = ''
-      
+
       // Validate name
       if (!form.name.trim()) {
         errors.name = 'Name is required'
         isValid = false
       }
-      
+
       // Validate mobile (optional, but if provided, must be valid)
       if (form.mobile) {
         const mobileError = validateMobileNumber(form.mobile, selectedMobileCountry.value, 'Mobile')
@@ -164,38 +148,38 @@ export default {
           isValid = false
         }
       }
-      
+
       return isValid
     }
-    
+
     const saveUserInfo = () => {
       if (validateForm()) {
         // Store mobile number WITHOUT country code for consistency
         const cleanMobile = form.mobile ? formatMobileForStorage(form.mobile, selectedMobileCountry.value) : ''
-        
+
         const userData = {
           name: form.name,
           mobile: cleanMobile, // Store only the mobile number, not with country code
-          countryCode: selectedMobileCountry.value.code // Store country code separately if needed
+          countryCode:  selectedMobileCountry.value.code // Store country code with + prefix
         }
-        
+
         console.log('Saving user info:', userData)
-        
+
         try {
           // Save to localStorage
           saveToLocalStorage(userData)
-          
+
           // Update store state
           store.commit('user/setUserInfo', userData)
-          
+
           console.log('User info saved successfully')
-          
+
         } catch (error) {
           console.error('Error saving user info:', error)
-          
+
           // Even if store fails, we saved to localStorage
           console.log('Store update failed, but localStorage saved')
-          
+
           // Force reload to trigger app state update
           window.location.reload()
         }
@@ -213,7 +197,7 @@ export default {
     if (typeof document !== 'undefined') {
       document.addEventListener('click', handleClickOutside)
     }
-    
+
     return {
       form,
       errors,
@@ -238,6 +222,7 @@ export default {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
