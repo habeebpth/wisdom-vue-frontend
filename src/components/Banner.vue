@@ -61,7 +61,7 @@
 
 @media (min-width: 640px) {
   .banner {
-    height: 20rem;
+    height: 100vh;
   }
   
   .banner-title {
@@ -82,7 +82,7 @@
 
 @media (min-width: 768px) {
   .banner {
-    height: 24rem;
+    height: 100vh;
   }
   
   .banner-title {
@@ -120,7 +120,7 @@ export default {
     },
     title: {
       type: String,
-      default: 'Make a Difference Today'
+      default: '₹123423.00'
     },
     subtitle: {
       type: String,

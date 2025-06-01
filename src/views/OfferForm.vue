@@ -109,7 +109,7 @@
               <template v-else>
                 <div>
                   <label for="district" class="form-label">ജില്ല (District) <span
-                      class="text-gray-500">(Optional)</span></label>
+                      class="text-gray-500"></span></label>
                   <select id="district" v-model="form.district" class="form-select">
                     <option value="">Select a district</option>
                     <option v-for="district in keralaDistricts" :key="district.id" :value="district.id">
@@ -121,7 +121,7 @@
 
                 <div>
                   <label for="taluk" class="form-label">താലൂക്ക് (Taluk) <span
-                      class="text-gray-500">(Optional)</span></label>
+                      class="text-gray-500"></span></label>
                   <input id="taluk" v-model="form.taluk" type="text" class="form-input"
                     placeholder="Enter taluk name" />
                   <p v-if="errors.taluk" class="mt-1 text-sm text-red-600">{{ errors.taluk }}</p>
@@ -129,7 +129,7 @@
 
                 <div>
                   <label for="panchayath" class="form-label">പഞ്ചായത്ത് (Panchayath) <span
-                      class="text-gray-500">(Optional)</span></label>
+                      class="text-gray-500"></span></label>
                   <input id="panchayath" v-model="form.panchayath" type="text" class="form-input"
                     placeholder="Enter panchayath name" />
                   <p v-if="errors.panchayath" class="mt-1 text-sm text-red-600">{{ errors.panchayath }}</p>
@@ -137,7 +137,7 @@
 
                 <div>
                   <label for="ward" class="form-label">വാർഡ് (Ward) <span
-                      class="text-gray-500">(Optional)</span></label>
+                      class="text-gray-500"></span></label>
                   <input id="ward" v-model="form.ward" type="text" class="form-input"
                     placeholder="Enter ward number/name" />
                 </div>
@@ -263,7 +263,7 @@
               </div>
 
               <div>
-                <label for="email" class="form-label">Email <span class="text-gray-500">(Optional)</span></label>
+                <label for="email" class="form-label">Email <span class="text-gray-500"></span></label>
                 <input id="email" v-model="form.email" type="email" class="form-input"
                   placeholder="Enter your email address" />
                 <p v-if="errors.email" class="mt-1 text-sm text-red-600">{{ errors.email }}</p>
@@ -292,7 +292,7 @@
                   <span class="text-red-500">*</span></label>
                 <div class="mt-1 relative rounded-md shadow-sm">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="text-gray-500 sm:text-sm">₹</span>
+                    <span class="text-gray-500 sm:text-sm"></span>
                   </div>
                   <input id="offerAmount" v-model.number="form.offerAmount" type="number" class="form-input pl-8"
                     placeholder="Enter amount" min="1" />
@@ -343,7 +343,7 @@
                   <div class="flex items-center">
                     <input id="installment-custom" type="radio" v-model="form.installmentType" name="installment-type"
                       value="custom" class="h-5 w-5 text-green-600" />
-                    <label for="installment-custom" class="ml-3 text-gray-700">Custom: </label>
+                    <label for="installment-custom" class="ml-3 text-gray-700"></label>
                     <input v-model.number="form.customInstallments" type="number" min="1" class="ml-2 form-input w-20"
                       :disabled="form.installmentType !== 'custom'" />
                     <span class="ml-2">തവണ</span>
@@ -355,7 +355,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="form-label">പൂർത്തിയാക്കുന്ന വർഷം (Completion Year) <span
-                      class="text-gray-500">(Optional)</span></label>
+                      class="text-gray-500"></span></label>
                   <select v-model="form.completionYear" class="form-select">
                     <option value="">Select Year</option>
                     <option value="2025">2025</option>
@@ -365,7 +365,7 @@
 
                 <div>
                   <label class="form-label">പൂർത്തിയാക്കുന്ന മാസം (Completion Month) <span
-                      class="text-gray-500">(Optional)</span></label>
+                      class="text-gray-500"></span></label>
                   <select v-model="form.completionMonth" class="form-select">
                     <option value="">Select Month</option>
                     <option value="1">ജനുവരി (January)</option>

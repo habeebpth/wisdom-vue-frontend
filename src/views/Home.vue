@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Banner :imageUrl="bannerImage" title="Make a Difference Today" subtitle="Your contribution can change lives and create lasting impact">
+    <Banner :imageUrl="bannerImage" title="₹123133.00" subtitle="Your contribution can change lives and create lasting impact">
       <router-link to="/donate" class="btn btn-primary">
         <i class="fas fa-heart mr-2"></i> Donate Now
       </router-link>

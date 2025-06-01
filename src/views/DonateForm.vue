@@ -136,7 +136,7 @@
               </div>
 
               <div>
-                <label for="district" class="form-label">District <span class="text-gray-500">(Optional)</span></label>
+                <label for="district" class="form-label">District <span class="text-gray-500"></span></label>
                 <select id="district" v-model="form.district" class="form-select" @change="onDistrictChange">
                   <option value="">Select a district</option>
                   <option v-for="district in districts" :key="district.id" :value="district.id">
@@ -147,7 +147,7 @@
               </div>
 
               <div>
-                <label for="zone" class="form-label">Zone <span class="text-gray-500">(Optional)</span></label>
+                <label for="zone" class="form-label">Zone <span class="text-gray-500"></span></label>
                 <select id="zone" v-model="form.zone" class="form-select" @change="onZoneChange"
                   :disabled="!form.district">
                   <option value="">Select a zone</option>
@@ -159,7 +159,7 @@
               </div>
 
               <div>
-                <label for="unit" class="form-label">Unit <span class="text-gray-500">(Optional)</span></label>
+                <label for="unit" class="form-label">Unit <span class="text-gray-500"></span></label>
                 <select id="unit" v-model="form.unit" class="form-select" :disabled="!form.zone">
                   <option value="">Select a unit</option>
                   <option v-for="unit in units" :key="unit.id" :value="unit.id">

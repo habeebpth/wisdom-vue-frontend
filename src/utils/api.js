@@ -443,8 +443,8 @@ export const getOfferHistory = async (fullMobile) => {
     // Validate and format the data
     const formattedHistory = Array.isArray(history) ? history.map(item => ({
       id: item.id || item.offer_id || 'N/A',
-      amount: item.amount || item.total_amount || 0,
-      paidAmount: item.paid_amount || item.paidAmount || 0,
+      amount: item.offerAmount || item.total_amount || 0,
+      paidAmount: item.paidAmount || item.paidAmount || 0,
       installments: item.installment_type || item.installments || '1',
       completionDate: formatCompletionDate(item.completion_year, item.completion_month) || 'N/A',
       date: item.date || item.created_at || new Date().toISOString(),

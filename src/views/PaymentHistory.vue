@@ -112,12 +112,12 @@
                     </th>
                     <th scope="col"
                       class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Amount
+                      Offer Amount
                     </th>
-                    <th scope="col"
+                    <!-- <th scope="col"
                       class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Paid Amount
-                    </th>
+                    </th> -->
                     <th scope="col"
                       class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Installments
@@ -140,9 +140,9 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       ₹{{ offer.amount }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <!-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       ₹{{ offer.paidAmount }}
-                    </td>
+                    </td> -->
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {{ offer.installments === '1' ? 'One-time' : offer.installments + ' installments' }}
                     </td>
@@ -275,7 +275,7 @@ export default {
     //   }
     // }
 
-    
+
 
     const formatDate = (dateString) => {
       if (!dateString) return ''
@@ -303,13 +303,41 @@ export default {
 
       try {
         showLoader('Generating receipt...')
-        const receiptUrl = await getReceiptUrl(transactionId)
-        hideLoader()
 
-        // Open receipt URL in a new tab
-        window.open(receiptUrl, '_blank')
+        // Direct fetch to your API endpoint
+        const response = await fetch(`https://wisdom-home.cloudocz.com/api/donations/receipt/${transactionId}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/pdf',
+            // Add authorization header if needed
+            // 'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to download receipt')
+        }
+
+        // Get the PDF blob
+        const blob = await response.blob()
+
+        // Create download link
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `receipt_${transactionId}.pdf`
+
+        // Trigger download
+        document.body.appendChild(link)
+        link.click()
+
+        // Cleanup
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+
+        hideLoader()
       } catch (error) {
-        console.error('Failed to get receipt:', error)
+        console.error('Failed to download receipt:', error)
         hideLoader()
         alert('Unable to download receipt. Please try again later.')
       }
