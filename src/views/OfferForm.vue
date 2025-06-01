@@ -461,7 +461,7 @@ import { ref, reactive, computed, onMounted, inject } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { getDistricts, getZones, getUnits, submitOffer } from '@/utils/api'
-import { validateMobileNumber, getDefaultCountry, searchCountries,formatMobileForDatabase,formatMobileForDisplay,parseStoredMobileForDisplay } from '@/utils/mobileValidation'
+import { validateMobileNumber, getDefaultCountry, searchCountries, formatMobileForDatabase, formatMobileForDisplay, parseStoredMobileForDisplay } from '@/utils/mobileValidation'
 
 export default {
   name: 'OfferForm',
@@ -630,10 +630,30 @@ export default {
         hideLoader()
       }
 
-      // Set WhatsApp same as mobile by default
-      if (form.mobile) {
-        form.whatsapp = form.mobile
+      // Parse stored mobile number correctly - ADD THIS SECTION
+      const storedMobile = store.state.user.mobile
+      if (storedMobile) {
+        console.log('Stored mobile from store:', storedMobile)
+
+        const parsed = parseStoredMobileForDisplay(storedMobile)
+        console.log('Parsed mobile:', parsed)
+
+        // Set the country and mobile number correctly
+        selectedMobileCountry.value = parsed.country
+        form.mobile = parsed.mobileNumber
+
+        // Also set WhatsApp to same values by default
+        selectedWhatsAppCountry.value = parsed.country
+        form.whatsapp = parsed.mobileNumber
       }
+
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.relative')) {
+          showMobileCountryDropdown.value = false
+          showWhatsAppCountryDropdown.value = false
+        }
+      })
     })
 
     // Handle district change for member
