@@ -461,7 +461,7 @@ import { ref, reactive, computed, onMounted, inject } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { getDistricts, getZones, getUnits, submitOffer } from '@/utils/api'
-import { validateMobileNumber, getDefaultCountry, searchCountries } from '@/utils/mobileValidation'
+import { validateMobileNumber, getDefaultCountry, searchCountries,formatMobileForDatabase,formatMobileForDisplay,parseStoredMobileForDisplay } from '@/utils/mobileValidation'
 
 export default {
   name: 'OfferForm',
