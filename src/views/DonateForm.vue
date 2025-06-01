@@ -485,7 +485,6 @@ export default {
       }
     }
 
-    // Initiate Razorpay payment
     const initiatePayment = async () => {
       try {
         isProcessing.value = true
@@ -494,22 +493,29 @@ export default {
         // Show preloader while creating order
         showLoader('Creating your donation order...')
 
+        // Create full mobile with selected country code for API
+        const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
+
         // Create an order on the backend
         const orderData = {
           amount: selectedAmount.value,
           name: form.name,
-          mobile: form.mobile,
+          mobile: fullMobile, // This should be "+971-527402017" format
           district: form.district,
           zone: form.zone,
           unit: form.unit
         }
+
+        console.log('Order data being sent:', orderData)
+        console.log('Selected country:', selectedMobileCountry.value)
+        console.log('Full mobile being sent:', fullMobile)
 
         const response = await createRazorpayOrder(orderData)
         hideLoader()
 
         // Configure Razorpay options
         const options = {
-          key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_TEST_KEY_ID', // Use test key if env var not set
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_TEST_KEY_ID',
           amount: selectedAmount.value * 100, // Amount in paise
           currency: 'INR',
           name: 'Wisdom Donations',
@@ -520,7 +526,7 @@ export default {
           },
           prefill: {
             name: form.name,
-            contact: form.mobile
+            contact: form.mobile // Use just the mobile number for Razorpay
           },
           theme: {
             color: '#4A90E2'
@@ -538,24 +544,32 @@ export default {
 
       } catch (error) {
         isProcessing.value = false
+        hideLoader()
         errors.payment = 'Failed to initiate payment. Please try again later.'
         console.error('Payment initiation error:', error)
       }
     }
 
-    // Handle successful payment
+    // Also update the handlePaymentSuccess method to include country code
     const handlePaymentSuccess = async (response) => {
       try {
         // Show preloader during payment verification
         showLoader('Verifying your payment...')
+
+        // Create full mobile with selected country code for verification
+        const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
 
         // Verify payment on backend
         const verificationData = {
           razorpay_payment_id: response.razorpay_payment_id,
           razorpay_order_id: response.razorpay_order_id,
           razorpay_signature: response.razorpay_signature,
-          amount: selectedAmount.value
+          amount: selectedAmount.value,
+          mobile: fullMobile, // Include full mobile for verification
+          name: form.name
         }
+
+        console.log('Verification data being sent:', verificationData)
 
         const verificationResponse = await verifyPayment(verificationData)
         hideLoader()
@@ -583,6 +597,7 @@ export default {
         }
       } catch (error) {
         console.error('Payment verification error:', error)
+        hideLoader()
         router.push({
           name: 'PaymentResponse',
           query: {
