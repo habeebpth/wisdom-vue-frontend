@@ -1,112 +1,84 @@
 <template>
-  <div>
-    <Banner 
-      :imageUrl="bannerImage" 
-      subtitle="Your contribution can change lives and create lasting impact">
-    </Banner>
-    
-    <section class="py-12 bg-white">
-      <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-          <h2 class="text-3xl font-bold text-gray-800 mb-4">Make a Difference Today</h2>
-          <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-            Your contribution helps us continue our mission of providing support and resources to those in need.
-            Every donation, no matter how small, makes a significant impact.
-          </p>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Donation Impact Card -->
-          <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
-            <div class="text-blue-600 text-4xl mb-4">
-              <i class="fas fa-hand-holding-heart"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Your Impact</h3>
-            <p class="text-gray-600">
-              Every donation helps us reach more people and provide essential services to communities in need.
-            </p>
-          </div>
-          
-          <!-- Transparency Card -->
-          <div class="bg-green-50 rounded-lg p-6 shadow-sm">
-            <div class="text-green-600 text-4xl mb-4">
-              <i class="fas fa-chart-pie"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Transparency</h3>
-            <p class="text-gray-600">
-              We are committed to full transparency in how your donations are used and the impact they create.
-            </p>
-          </div>
-          
-          <!-- Easy Donations Card -->
-          <div class="bg-yellow-50 rounded-lg p-6 shadow-sm">
-            <div class="text-yellow-600 text-4xl mb-4">
-              <i class="fas fa-mobile-alt"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Easy Donations</h3>
-            <p class="text-gray-600">
-              Our secure payment system makes it easy to donate anytime, anywhere, from any device.
-            </p>
+  <div class="home-container">
+    <!-- Banner Component -->
+    <Banner />
+
+    <!-- How to Pay Section -->
+    <div class="how-to-pay-section">
+      <div class="pay-background">
+        <div class="pay-overlay">
+          <div class="pay-content">
+            <h2 class="pay-title">How to Pay</h2>
+            <p class="pay-subtitle">Learn the easy steps to make your contribution</p>
+            <button @click="openYouTubeVideo" class="watch-btn">
+              <div class="watch-icon">
+                <i class="fab fa-youtube"></i>
+              </div>
+              <span>Watch Now</span>
+            </button>
           </div>
         </div>
       </div>
-    </section>
-    
-    <section class="py-12 bg-gray-50">
-      <div class="container mx-auto px-4">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-8">
-          <div class="md:w-1/2">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Support Our Mission</h2>
-            <p class="text-lg text-gray-600 mb-6">
-              Wisdom Donations is dedicated to improving lives through sustainable development, education, 
-              and community support programs. Your donations help us continue this important work.
-            </p>
-            <router-link to="/donate" class="btn btn-primary inline-block">
-              Donate Now
-            </router-link>
-          </div>
-          
-          <div class="md:w-1/2 bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Achievements</h3>
-            <ul class="space-y-4">
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span class="text-gray-700">Provided educational support to 500+ students</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span class="text-gray-700">Implemented clean water projects in 10 communities</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span class="text-gray-700">Distributed medical supplies to underserved areas</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span class="text-gray-700">Launched 5 new community development programs</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- Toast notification for "Coming Soon" -->
-    <div 
-      v-if="showToast" 
-      class="fixed bottom-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center"
-    >
-      <i class="fas fa-info-circle mr-2"></i>
-      <span>Offer Now feature coming soon!</span>
-      <button @click="showToast = false" class="ml-4 text-white hover:text-gray-200">
-        <i class="fas fa-times"></i>
-      </button>
     </div>
+
+    <!-- App Support Section -->
+    <div class="app-support-section">
+      <div class="support-container">
+        <h2 class="support-title">App Support</h2>
+        <p class="support-subtitle">Our app support team is here to help you</p>
+        
+        <div class="support-buttons">
+          <a href="https://wa.me/1234567890" class="support-btn whatsapp-btn" target="_blank">
+            <div class="support-icon">
+              <i class="fab fa-whatsapp"></i>
+            </div>
+            <span>WhatsApp</span>
+          </a>
+          
+          <a href="tel:+1234567890" class="support-btn call-btn">
+            <div class="support-icon">
+              <i class="fas fa-phone"></i>
+            </div>
+            <span>Call</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="bottom-section">
+      <div class="bottom-container">
+        <div class="bottom-info">
+          <p class="version">Version 1.0</p>
+          <p class="organization">Wisdom Islamic Organisation</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- YouTube Modal -->
+    <div v-if="showVideoModal" class="video-modal" @click="closeVideoModal">
+      <div class="modal-content" @click.stop>
+        <button @click="closeVideoModal" class="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="video-container">
+          <iframe
+            :src="youtubeEmbedUrl"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spacer for sticky buttons -->
+    <div class="sticky-spacer"></div>
   </div>
 </template>
 
 <script>
-import { ref, inject, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import Banner from '@/components/Banner.vue'
 
 export default {
@@ -115,12 +87,28 @@ export default {
     Banner
   },
   setup() {
-    const showToast = ref(false)
-    const bannerImage = 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&q=80'
+    const showVideoModal = ref(false)
+    const youtubeVideoId = ref('dQw4w9WgXcQ') // Replace with actual video ID
     
     // Get preloader functions
     const showLoader = inject('showLoader')
     const hideLoader = inject('hideLoader')
+    
+    const youtubeEmbedUrl = computed(() => {
+      return `https://www.youtube.com/embed/${youtubeVideoId.value}?autoplay=1`
+    })
+    
+    const openYouTubeVideo = () => {
+      showVideoModal.value = true
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden'
+    }
+    
+    const closeVideoModal = () => {
+      showVideoModal.value = false
+      // Restore body scroll
+      document.body.style.overflow = 'auto'
+    }
     
     // Show preloader when the page is loading
     onMounted(() => {
@@ -132,256 +120,358 @@ export default {
       }, 800)
     })
     
-    const showComingSoon = () => {
-      showToast.value = true
-      setTimeout(() => {
-        showToast.value = false
-      }, 3000)
-    }
-    
     return {
-      showToast,
-      bannerImage,
-      showComingSoon
+      showVideoModal,
+      youtubeEmbedUrl,
+      openYouTubeVideo,
+      closeVideoModal
     }
   }
 }
 </script>
 
 <style scoped>
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+.home-container {
+  min-height: 100vh;
+  background: #f8f9fa;
 }
 
-.py-12 {
-  padding-top: 3rem;
-  padding-bottom: 3rem;
+/* How to Pay Section */
+.how-to-pay-section {
+  margin: 2rem 1rem;
 }
 
-.bg-white {
-  background-color: white;
+.pay-background {
+  position: relative;
+  height: 300px;
+  background-image: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80');
+  background-size: cover;
+  background-position: center;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.mb-12 {
-  margin-bottom: 3rem;
-}
-
-.text-3xl {
-  font-size: 1.875rem;
-}
-
-.font-bold {
-  font-weight: 700;
-}
-
-.text-gray-800 {
-  color: #1f2937;
-}
-
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-.text-lg {
-  font-size: 1.125rem;
-}
-
-.text-gray-600 {
-  color: #4b5563;
-}
-
-.max-w-3xl {
-  max-width: 48rem;
-}
-
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.grid {
-  display: grid;
-}
-
-.grid-cols-1 {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-.gap-8 {
-  gap: 2rem;
-}
-
-.bg-blue-50 {
-  background-color: #eff6ff;
-}
-
-.rounded-lg {
-  border-radius: 0.5rem;
-}
-
-.p-6 {
-  padding: 1.5rem;
-}
-
-.shadow-sm {
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-
-.text-blue-600 {
-  color: #4A90E2;
-}
-
-.text-4xl {
-  font-size: 2.25rem;
-}
-
-.text-xl {
-  font-size: 1.25rem;
-}
-
-.font-semibold {
-  font-weight: 600;
-}
-
-.mb-2 {
-  margin-bottom: 0.5rem;
-}
-
-.bg-green-50 {
-  background-color: #ecfdf5;
-}
-
-.text-green-600 {
-  color: #5CB85C;
-}
-
-.bg-yellow-50 {
-  background-color: #fffbeb;
-}
-
-.text-yellow-600 {
-  color: #F0AD4E;
-}
-
-.flex {
+.pay-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.85) 0%, rgba(53, 122, 189, 0.85) 100%);
   display: flex;
-}
-
-.flex-col {
-  flex-direction: column;
-}
-
-.items-center {
   align-items: center;
+  justify-content: center;
+  padding: 2rem;
 }
 
-.justify-between {
-  justify-content: space-between;
-}
-
-.mb-6 {
-  margin-bottom: 1.5rem;
-}
-
-.inline-block {
-  display: inline-block;
-}
-
-.shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.space-y-4 > * + * {
-  margin-top: 1rem;
-}
-
-.items-start {
-  align-items: flex-start;
-}
-
-.text-green-500 {
-  color: #5CB85C;
-}
-
-.mt-1 {
-  margin-top: 0.25rem;
-}
-
-.mr-3 {
-  margin-right: 0.75rem;
-}
-
-.text-gray-700 {
-  color: #374151;
-}
-
-.fixed {
-  position: fixed;
-}
-
-.bottom-4 {
-  bottom: 1rem;
-}
-
-.right-4 {
-  right: 1rem;
-}
-
-.bg-blue-600 {
-  background-color: #4A90E2;
-}
-
-.text-white {
+.pay-content {
+  text-align: center;
   color: white;
 }
 
-.px-6 {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+.pay-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.py-3 {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
+.pay-subtitle {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+.watch-btn {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50px;
+  padding: 1rem 2rem;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 auto;
 }
 
-.mr-2 {
-  margin-right: 0.5rem;
+.watch-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
-.ml-4 {
-  margin-left: 1rem;
+.watch-icon {
+  width: 40px;
+  height: 40px;
+  background: #FF0000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
 }
 
-.hover\:text-gray-200:hover {
-  color: #e5e7eb;
+/* App Support Section */
+.app-support-section {
+  background: white;
+  margin: 2rem 1rem;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.support-container {
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+
+.support-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.support-subtitle {
+  font-size: 1rem;
+  color: #718096;
+  margin-bottom: 2rem;
+}
+
+.support-buttons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: nowrap; /* Keep buttons in same line */
+}
+
+.support-btn {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex: 1;
+  max-width: 140px;
+  justify-content: center;
+}
+
+.whatsapp-btn {
+  color: #25D366;
+  border-color: #25D366;
+}
+
+.whatsapp-btn:hover {
+  background: #25D366;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+}
+
+.call-btn {
+  color: #4299e1;
+  border-color: #4299e1;
+}
+
+.call-btn:hover {
+  background: #4299e1;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(66, 153, 225, 0.3);
+}
+
+.support-icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+/* Bottom Section */
+.bottom-section {
+  background: #2d3748;
+  color: white;
+  margin: 2rem 1rem;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.bottom-container {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bottom-info {
+  text-align: center;
+}
+
+.version {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin: 0 0 0.25rem 0;
+}
+
+.organization {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Video Modal */
+.video-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sticky Spacer */
+.sticky-spacer {
+  height: 80px; /* Reduced space for smaller sticky buttons */
+}
+
+/* Responsive Design */
+@media (min-width: 640px) {
+  .how-to-pay-section,
+  .app-support-section,
+  .bottom-section {
+    margin: 2rem auto;
+    max-width: 600px;
+  }
+  
+  .pay-background {
+    height: 350px;
+  }
+  
+  .pay-title {
+    font-size: 2.5rem;
+  }
+  
+  .support-buttons {
+    gap: 1rem;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  
+  .support-btn {
+    max-width: 150px;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+  }
 }
 
 @media (min-width: 768px) {
-  .md\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .how-to-pay-section,
+  .app-support-section,
+  .bottom-section {
+    max-width: 800px;
   }
   
-  .md\:flex-row {
-    flex-direction: row;
+  .support-buttons {
+    max-width: 350px;
   }
   
-  .md\:w-1\/2 {
-    width: 50%;
+  .support-btn {
+    max-width: 170px;
   }
+}
+
+@media (min-width: 1024px) {
+  .how-to-pay-section,
+  .app-support-section,
+  .bottom-section {
+    max-width: 1000px;
+  }
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.how-to-pay-section {
+  animation: slideInUp 0.8s ease-out 0.2s both;
+}
+
+.app-support-section {
+  animation: slideInUp 0.8s ease-out 0.4s both;
+}
+
+.bottom-section {
+  animation: slideInUp 0.8s ease-out 0.6s both;
 }
 </style>
