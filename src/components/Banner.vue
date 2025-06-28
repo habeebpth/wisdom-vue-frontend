@@ -1,54 +1,6 @@
 <template>
   <div class="banner-container">
-    <!-- 
-    Amount Section - Commented for future use
-    <div class="amount-section">
-      <div class="collected-box">
-        <div class="collected-icon">
-          <i class="fas fa-rupee-sign"></i>
-        </div>
-        <div class="collected-info">
-          <h3 class="collected-label">
-            Collected So Far
-            <span v-if="!isFirstLoad && !hasError" class="refresh-indicator">
-              <i :class="['fas fa-sync-alt', { 'fa-spin': isLoading }]"></i>
-            </span>
-            <button 
-              v-if="!isFirstLoad"
-              @click="manualRefresh" 
-              class="manual-refresh-btn"
-              :disabled="isLoading"
-              title="Refresh now"
-            >
-              <i :class="['fas fa-redo', { 'fa-spin': isManualRefresh }]"></i>
-            </button>
-          </h3>
-          <h2 :class="['collected-amount', { updating: isLoading && !isFirstLoad }]">
-            {{ displayAmount }}
-          </h2>
-          <div v-if="isLoading && isFirstLoad" class="loading-indicator">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Loading amount...</span>
-          </div>
-          <div v-else-if="hasError" class="error-indicator">
-            <span>Failed to load amount</span>
-            <button @click="fetchCollectedAmount(true)" class="retry-btn">
-              <i class="fas fa-redo"></i> Retry
-            </button>
-          </div>
-          <div v-else-if="lastUpdated" class="auto-refresh-info">
-            <span class="last-updated">{{ formatLastUpdated }}</span>
-            <span>• Auto-updates every 5s</span>
-          </div>
-        </div>
-      </div>
-      <p class="collected-subtitle">
-        {{ subtitle }}
-      </p>
-    </div>
-    -->
-
-    <!-- Image Slider Section - 4-Side Curved -->
+    <!-- Image Slider Section - Optimized for 800×350 dimensions -->
     <div class="slider-section">
       <div class="slider-container">
         <div 
@@ -82,10 +34,7 @@
           <div class="btn-icon">
             <i class="fas fa-heart"></i>
           </div>
-          <div class="btn-content">
-            <span class="btn-title">Donate Now</span>
-            <span class="btn-subtitle">Make a difference today</span>
-          </div>
+          <span class="btn-title">Donate Now</span>
         </router-link>
 
         <!-- Offer Now Button -->
@@ -93,11 +42,10 @@
           <div class="btn-icon">
             <i class="fas fa-hands-helping"></i>
           </div>
-          <div class="btn-content">
-            <span class="btn-title">Offer Now</span>
-            <span class="btn-subtitle">Pledge your support</span>
-          </div>
+          <span class="btn-title">Offer Now</span>
         </router-link>
+
+
       </div>
     </div>
   </div>
@@ -154,7 +102,7 @@ export default {
     const isTransitioning = ref(false)
     const slideTimer = ref(null)
     
-    // State for collected amount (commented functionality - keeping for future use)
+    // State for collected amount (keeping for future use)
     const collectedAmount = ref('₹0.00')
     const isLoading = ref(false)
     const hasError = ref(false)
@@ -197,7 +145,7 @@ export default {
     }
     
     const goToSlide = (index) => {
-      if (isTransitioning.value || index === currentSlide.value) return
+      if (isTransitioning.value || currentSlide.value === index) return
       isTransitioning.value = true
       currentSlide.value = index
       setTimeout(() => {
@@ -220,7 +168,7 @@ export default {
       }
     }
     
-    // Amount methods (commented functionality - keeping for future use)
+    // Amount functionality (keeping for future use)
     const fetchCollectedAmount = async (showLoading = true, isManual = false) => {
       try {
         if (showLoading) {
@@ -230,9 +178,10 @@ export default {
           isManualRefresh.value = true
         }
         hasError.value = false
-        console.log('Fetching collected amount...')
         
+        console.log('Fetching collected amount...')
         const response = await getCollectedAmount()
+        
         if (response.success) {
           const oldAmount = collectedAmount.value
           collectedAmount.value = response.formattedAmount
@@ -241,6 +190,7 @@ export default {
           if (oldAmount !== response.formattedAmount && !isFirstLoad.value) {
             console.log('Amount updated from', oldAmount, 'to', response.formattedAmount)
           }
+          
           console.log('Successfully loaded collected amount:', response.formattedAmount)
         } else {
           throw new Error(response.error || 'Failed to fetch collected amount')
@@ -333,7 +283,7 @@ export default {
       startAutoSlide,
       stopAutoSlide,
       
-      // Amount functionality (commented - keeping for future use)
+      // Amount functionality (keeping for future use)
       displayAmount,
       isLoading,
       hasError,
@@ -356,16 +306,15 @@ export default {
   width: 100%;
 }
 
-/* Slider Section - 4-Side Curved (Reduced Height) */
+/* Slider Section - Optimized for 800×350 aspect ratio */
 .slider-section {
   position: relative;
-  height: 40vh;
-  min-height: 250px;
-  max-height: 350px;
-  width: calc(100% - 2rem);
+  width: 100%;
+  aspect-ratio: 800 / 350; /* Maintains exact 800:350 ratio */
+  max-width: 1200px;
   margin: 1rem auto;
   overflow: hidden;
-  border-radius: 25px;
+  border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
@@ -374,7 +323,7 @@ export default {
   inset: 0;
   width: 100%;
   height: 100%;
-  border-radius: 25px;
+  border-radius: 20px;
   overflow: hidden;
 }
 
@@ -390,12 +339,17 @@ export default {
   opacity: 0;
   transition: opacity 0.6s ease-in-out;
   cursor: pointer;
-  border-radius: 25px;
+  border-radius: 20px;
   touch-action: pan-y;
 }
 
 .slide.active {
   opacity: 1;
+}
+
+.slide:hover {
+  transform: scale(1.02);
+  transition: all 0.3s ease;
 }
 
 /* Enhanced Slide Indicators */
@@ -407,7 +361,7 @@ export default {
   display: flex;
   gap: 0.75rem;
   z-index: 3;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.3);
   padding: 0.75rem 1.25rem;
   border-radius: 25px;
   backdrop-filter: blur(10px);
@@ -442,7 +396,7 @@ export default {
   cursor: not-allowed;
 }
 
-/* Buttons Section - Sticky Bottom (Reduced Height) */
+/* Buttons Section - Sticky Bottom */
 .buttons-section {
   position: fixed;
   bottom: 0;
@@ -453,12 +407,13 @@ export default {
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
   border-top: 1px solid #e2e8f0;
   z-index: 1000;
+  background: none;
 }
 
 .action-buttons {
   display: flex;
-  gap: 0.75rem;
-  max-width: 900px;
+  gap: 1rem;
+  max-width: 600px;
   margin: 0 auto;
   justify-content: center;
 }
@@ -466,7 +421,7 @@ export default {
 .action-btn {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 0.75rem 1.5rem;
   text-decoration: none;
   display: flex;
@@ -478,25 +433,47 @@ export default {
   flex: 1;
   min-width: 0;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.action-btn:hover::before {
+  left: 100%;
 }
 
 .action-btn:hover {
   background: #f8f9fa;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   border-color: #cbd5e0;
 }
 
 .btn-icon {
   width: 20px;
   height: 20px;
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
   color: white;
   flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.action-btn:hover .btn-icon {
+  transform: scale(1.1);
 }
 
 .donate-btn .btn-icon {
@@ -507,9 +484,13 @@ export default {
   background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
 }
 
+.history-btn .btn-icon {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
 .btn-content {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   text-align: center;
   flex: 1;
 }
@@ -518,30 +499,61 @@ export default {
   color: #2d3748;
   font-size: 0.95rem;
   font-weight: 600;
-  margin-bottom: 0;
+  margin-left: 0.5rem;
+  transition: color 0.3s ease;
 }
 
 .btn-subtitle {
-  display: none; /* Hide subtitle for cleaner look */
+  display: none; /* Hide subtitle for cleaner mobile look */
+  color: #718096;
+  font-size: 0.75rem;
+  font-weight: 400;
 }
 
-/* Responsive Design */
-@media (min-width: 640px) {
+/* Responsive Design - Mobile First */
+@media (max-width: 479px) {
   .slider-section {
-    height: 45vh;
-    min-height: 280px;
-    max-height: 400px;
-    width: calc(100% - 3rem);
-    margin: 1.5rem auto;
-    border-radius: 30px;
+    margin: 0.5rem;
+    border-radius: 15px;
+    /* On very small screens, allow some height flexibility while maintaining aspect ratio */
+    min-height: 200px;
+    max-height: 280px;
   }
   
-  .slider-container {
-    border-radius: 30px;
+  .slide-indicators {
+    bottom: 1rem;
+    padding: 0.5rem 1rem;
   }
   
-  .slide {
-    border-radius: 30px;
+  .indicator {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .action-buttons {
+    gap: 0.75rem;
+  }
+  
+  .action-btn {
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+  }
+  
+  .btn-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 0.75rem;
+  }
+  
+  .btn-title {
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 480px) {
+  .slider-section {
+    margin: 1rem;
+    border-radius: 18px;
   }
   
   .buttons-section {
@@ -549,7 +561,7 @@ export default {
   }
   
   .action-buttons {
-    gap: 1rem;
+    gap: 1.25rem;
     max-width: 400px;
   }
   
@@ -575,20 +587,9 @@ export default {
 
 @media (min-width: 768px) {
   .slider-section {
-    height: 50vh;
-    min-height: 320px;
-    max-height: 450px;
-    width: calc(100% - 4rem);
-    margin: 2rem auto;
-    border-radius: 35px;
-  }
-  
-  .slider-container {
-    border-radius: 35px;
-  }
-  
-  .slide {
-    border-radius: 35px;
+    margin: 1.5rem auto;
+    border-radius: 25px;
+    max-width: 1000px;
   }
   
   .buttons-section {
@@ -596,12 +597,12 @@ export default {
   }
   
   .action-buttons {
-    gap: 1.25rem;
+    gap: 1.5rem;
     max-width: 450px;
   }
   
   .action-btn {
-    padding: 1rem 2.5rem;
+    border-radius: 15px;
   }
   
   .btn-icon {
@@ -618,12 +619,17 @@ export default {
     width: 16px;
     height: 16px;
   }
+  
+  .btn-subtitle {
+    display: none; /* Keep subtitle hidden on all screens */
+  }
 }
 
 @media (min-width: 1024px) {
   .slider-section {
-    width: calc(100% - 5rem);
-    margin: 2.5rem auto;
+    margin: 2rem auto;
+    border-radius: 30px;
+    max-width: 1200px;
   }
 
   .buttons-section {
@@ -631,7 +637,7 @@ export default {
   }
 
   .action-buttons {
-    gap: 1.5rem;
+    gap: 2rem;
     max-width: 500px;
   }
 
@@ -643,6 +649,26 @@ export default {
 
   .btn-title {
     font-size: 1.2rem;
+  }
+}
+
+/* Prevent banner from getting too large on ultra-wide screens */
+@media (min-width: 1400px) {
+  .slider-section {
+    max-height: 525px; /* Maintains aspect ratio for 1200px width */
+  }
+}
+
+/* Landscape phones - adjust height */
+@media (max-height: 600px) and (orientation: landscape) {
+  .slider-section {
+    max-height: 40vh;
+    min-height: 180px;
+  }
+  
+  .slide-indicators {
+    bottom: 0.75rem;
+    padding: 0.5rem 1rem;
   }
 }
 
@@ -658,9 +684,13 @@ export default {
   }
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .slider-section {
@@ -669,5 +699,62 @@ export default {
 
 .action-buttons {
   animation: slideInUp 0.8s ease-out 0.2s both;
+}
+
+.slide.active {
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+/* Loading states */
+.slide::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.slide:not(.active)::after {
+  opacity: 1;
+}
+
+/* Touch improvements */
+.slide {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.indicator {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-btn {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .slide,
+  .indicator,
+  .action-btn,
+  .btn-icon {
+    transition: none;
+  }
+  
+  .slider-section,
+  .action-buttons {
+    animation: none;
+  }
+}
+
+/* Focus states for better accessibility */
+.indicator:focus,
+.action-btn:focus {
+  outline: 2px solid #4299e1;
+  outline-offset: 2px;
 }
 </style>
