@@ -75,17 +75,27 @@ export default {
     
     const slides = ref([
       {
-        image: 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&q=80&w=800&h=350',
-        title: 'Help Build a Better Tomorrow',
+        image: 'images/new_edited.jpeg?auto=format&fit=crop&q=80&w=800&h=350',
+        title: '',
         action: 'donate'
       },
       {
-        image: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&q=80&w=800&h=350',
+        image: 'images/wh_banner_2.jpeg?auto=format&fit=crop&q=80&w=800&h=350',
+        title: 'Join Our Mission',
+        action: 'history'
+      },
+      {
+        image: 'images/wh_banner_3.jpeg?auto=format&fit=crop&q=80&w=800&h=350',
+        title: 'Join Our Mission',
+        action: 'history'
+      },
+      {
+        image: 'images/wh_banner_4.jpeg?auto=format&fit=crop&q=80&w=800&h=350',
         title: 'Your Contribution Matters',
         action: 'offer'
       },
       {
-        image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&q=80&w=800&h=350',
+        image: 'images/wh_banner_5.jpeg?auto=format&fit=crop&q=80&w=800&h=350',
         title: 'Join Our Mission',
         action: 'history'
       }
@@ -158,12 +168,9 @@ export default {
 .slider-section {
   position: relative;
   width: 100%;
-  height: 45vh; /* Use viewport height for better mobile control */
   min-height: 200px;
   max-height: 280px;
-  margin: 0.5rem;
   overflow: hidden;
-  border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
