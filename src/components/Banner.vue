@@ -117,18 +117,18 @@ export default {
           url: '/images/new_edited.jpeg',
           alt: 'Banner'
         },
-        // {
-        //   url: '/images/wh_banner_2.jpeg',
-        //   alt: 'Community gathering'
-        // },
-        // {
-        //   url: '/images/wh_banner_3.jpeg',
-        //   alt: 'Helping hands'
-        // },
-        // {
-        //   url: '/images/wh_banner_4.jpeg',
-        //   alt: 'Islamic architecture'
-        // }
+        {
+          url: '/images/wh_banner_2.jpeg',
+          alt: 'Community gathering'
+        },
+        {
+          url: '/images/wh_banner_3.jpeg',
+          alt: 'Helping hands'
+        },
+        {
+          url: '/images/wh_banner_4.jpeg',
+          alt: 'Islamic architecture'
+        }
       ]
     },
     subtitle: {
