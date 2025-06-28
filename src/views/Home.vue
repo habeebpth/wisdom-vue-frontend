@@ -4,7 +4,7 @@
     <Banner />
 
     <!-- How to Pay Section -->
-    <div class="how-to-pay-section">
+    <!-- <div class="how-to-pay-section">
       <div class="pay-background">
         <div class="pay-overlay">
           <div class="pay-content">
@@ -19,7 +19,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- App Support Section -->
     <div class="app-support-section">
@@ -28,14 +28,14 @@
         <p class="support-subtitle">Our app support team is here to help you</p>
         
         <div class="support-buttons">
-          <a href="https://wa.me/1234567890" class="support-btn whatsapp-btn" target="_blank">
+          <a href="https://wa.me/918606000750" class="support-btn whatsapp-btn" target="_blank">
             <div class="support-icon">
               <i class="fab fa-whatsapp"></i>
             </div>
             <span>WhatsApp</span>
           </a>
           
-          <a href="tel:+1234567890" class="support-btn call-btn">
+          <a href="tel:+918606000750" class="support-btn call-btn">
             <div class="support-icon">
               <i class="fas fa-phone"></i>
             </div>
