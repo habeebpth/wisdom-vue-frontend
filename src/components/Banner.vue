@@ -586,6 +586,7 @@ export default {
 }
 
 @media (min-width: 768px) {
+  
   .slider-section {
     margin: 1.5rem auto;
     border-radius: 25px;
