@@ -30,35 +30,34 @@
 
         <!-- Form Content -->
         <div class="p-6">
-          <h1 class="text-2xl font-bold text-gray-800 mb-6">Make a Donation</h1>
+          <h1 class="text-2xl font-bold text-gray-800 mb-3">Make a Donation</h1>
 
           <!-- Step 1: Amount Selection -->
           <div v-if="currentStep === 1">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Select Donation Amount</h2>
-
+            <!-- <h2 class="text-xl font-semibold text-gray-700 mb-0">Donation Amount</h2> -->
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-              <button v-for="(amount, index) in predefinedAmounts" :key="index" @click="selectAmount(amount)"
+              <!-- <button v-for="(amount, index) in predefinedAmounts" :key="index" @click="selectAmount(amount)"
                 class="py-3 px-4 border rounded-lg text-center transition-colors duration-200" :class="[
                   selectedAmount === amount
                     ? 'bg-blue-600 text-white border-blue-600'
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 ]">
                 ₹{{ amount }}
-              </button>
+              </button> -->
 
-              <button @click="showCustomAmount = true"
+              <!-- <button @click="showCustomAmount = true"
                 class="py-3 px-4 border rounded-lg text-center transition-colors duration-200" :class="[
                   showCustomAmount
                     ? 'bg-blue-600 text-white border-blue-600'
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 ]">
                 Other Amount
-              </button>
+              </button> -->
 
-              <div v-if="showCustomAmount" class="col-span-2 sm:col-span-3 mt-4">
-                <label for="customAmount" class="form-label">Custom Amount (₹)</label>
+              <div class="col-span-2 sm:col-span-3 mt-4">
+                <!-- <label for="customAmount" class="form-label">Amount (₹)</label> -->
                 <input id="customAmount" v-model.number="customAmount" type="number" min="1"
-                  placeholder="Enter custom amount" class="form-input" @input="selectCustomAmount" />
+                  placeholder="Enter Amount" class="form-input" @input="selectCustomAmount" />
               </div>
             </div>
 
@@ -244,7 +243,6 @@ import {
   formatMobileForDisplay
 } from '@/utils/mobileValidation'
 import { getDistricts, getZones, getUnits, createRazorpayOrder, verifyPayment } from '@/utils/api'
-
 export default {
   name: 'DonateForm',
   setup() {
@@ -643,3 +641,13 @@ export default {
   }
 }
 </script>
+<style scoped>
+#customAmount {
+  height: 80px;
+  font-size: 30px;
+  text-align: center;
+}
+.text-2xl{
+  text-align: center;
+}
+</style>

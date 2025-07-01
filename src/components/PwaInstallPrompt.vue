@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showInstallPrompt" class="pwa-install-prompt">
+  <div v-if="showInstallPrompt == 10" class="pwa-install-prompt">
     <div class="p-4 bg-white rounded-lg shadow-lg flex items-center justify-between">
       <div class="flex items-center">
         <img src="/img/icon-192x192.png" alt="App Icon" class="h-12 w-12 mr-3 rounded-lg" />
