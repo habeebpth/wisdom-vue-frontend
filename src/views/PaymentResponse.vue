@@ -124,7 +124,7 @@ export default {
         showLoader('Generating receipt...')
 
         // Direct fetch to your API endpoint
-        const response = await fetch(`https://wisdom-home.cloudocz.com/api/donations/receipt/${transactionId}`, {
+        const response = await fetch(`https://www.wisdom-home.cloudocz.com/api/donations/receipt/${transactionId}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/pdf',

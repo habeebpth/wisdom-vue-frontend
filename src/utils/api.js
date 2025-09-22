@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Base URL for API requests to the backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://wisdom-home.cloudocz.com/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://www.wisdom-home.cloudocz.com/api'
 
 // Create axios instance with common configuration
 const apiClient = axios.create({

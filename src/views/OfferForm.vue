@@ -867,7 +867,7 @@ export default {
 
           // Direct API call to the backend
           try {
-            const apiUrl = 'https://wisdom-home.cloudocz.com/api/offers/submit';
+            const apiUrl = 'https://www.wisdom-home.cloudocz.com/api/offers/submit';
             console.log('Making direct POST request to:', apiUrl);
 
             const apiResponse = await fetch(apiUrl, {
