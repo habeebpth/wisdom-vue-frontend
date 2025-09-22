@@ -28,14 +28,14 @@
         <p class="support-subtitle">Our app support team is here to help you</p>
         
         <div class="support-buttons">
-          <a href="https://wa.me/918606000750" class="support-btn whatsapp-btn" target="_blank">
+          <a href="https://wa.me/918086234445" class="support-btn whatsapp-btn" target="_blank">
             <div class="support-icon">
               <i class="fab fa-whatsapp"></i>
             </div>
             <span>WhatsApp</span>
           </a>
           
-          <a href="tel:+918606000750" class="support-btn call-btn">
+          <a href="tel:+918086234445" class="support-btn call-btn">
             <div class="support-icon">
               <i class="fas fa-phone"></i>
             </div>
