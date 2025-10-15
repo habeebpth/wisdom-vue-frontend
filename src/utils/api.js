@@ -612,6 +612,50 @@ const formatCompletionDate = (year, month) => {
   return `${monthName} ${year}`;
 }
 
+/**
+ * Get user details by mobile number
+ * @param {string} fullMobile - Mobile in format "+91-9876543210"
+ * @returns {Promise} Promise object with user details
+ */
+export const getUserByMobile = async (fullMobile) => {
+  if (!fullMobile) {
+    console.warn('No mobile number provided for user lookup');
+    return null;
+  }
+
+  try {
+    console.log('Fetching user details for mobile:', fullMobile);
+    
+    // Extract mobile number (remove country code and formatting)
+    const mobileNumber = extractMobileNumber(fullMobile)
+    const countryCode = extractCountryCode(fullMobile)
+    
+    console.log('Extracted mobile number:', mobileNumber);
+    console.log('Extracted country code:', countryCode);
+    
+    // Make API request
+    const response = await apiClient.get(`/users/by-mobile?mobile=${countryCode+mobileNumber}`)
+    
+    console.log('User details API response:', response.data);
+    
+    if (response.data.success && response.data.found) {
+      return response.data;
+    }
+    
+    return null;
+    
+  } catch (error) {
+    // If user not found (404), return null instead of throwing
+    if (error.response && error.response.status === 404) {
+      console.log('User not found for mobile:', fullMobile);
+      return null;
+    }
+    
+    console.error('Failed to get user details:', error);
+    return null;
+  }
+}
+
 // Export helper functions for use in components
 export {
   extractMobileNumber,

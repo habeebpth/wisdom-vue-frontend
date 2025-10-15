@@ -132,6 +132,17 @@
                   Expected format: {{ selectedMobileCountry.format }} for {{ selectedMobileCountry.name }}
                 </div>
                 <p v-if="errors.mobile" class="mt-1 text-sm text-red-600">{{ errors.mobile }}</p>
+                
+                <!-- Welcome Back Message for Existing Users -->
+                <div v-if="isExistingUser" class="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <div class="flex items-center">
+                    <i class="fas fa-user-check text-green-600 mr-2"></i>
+                    <div>
+                      <p class="text-sm font-medium text-green-800">Welcome back!</p>
+                      <p class="text-xs text-green-600">We've prefilled your information from your previous donations.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -229,7 +240,7 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted, inject } from 'vue'
+import { ref, reactive, computed, onMounted, inject, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import {
@@ -242,7 +253,7 @@ import {
   formatMobileForDatabase,
   formatMobileForDisplay
 } from '@/utils/mobileValidation'
-import { getDistricts, getZones, getUnits, createRazorpayOrder, verifyPayment } from '@/utils/api'
+import { getDistricts, getZones, getUnits, createRazorpayOrder, verifyPayment, getUserByMobile } from '@/utils/api'
 export default {
   name: 'DonateForm',
   setup() {
@@ -277,6 +288,8 @@ export default {
     const customAmount = ref(null)
     const showCustomAmount = ref(false)
     const isProcessing = ref(false)
+    const isExistingUser = ref(false)
+    const userDataLoaded = ref(false)
 
     const steps = ['Amount', 'Details', 'Payment']
 
@@ -357,6 +370,76 @@ export default {
         form.mobile = parsed.mobileNumber
       }
     })
+
+    // Watch mobile number for changes to auto-load user data
+    watch(() => form.mobile, async (newMobile, oldMobile) => {
+      if (newMobile && newMobile.length >= 7 && newMobile !== oldMobile && !userDataLoaded.value) {
+        await checkAndLoadUserData()
+      }
+    })
+
+    // Watch country code changes
+    watch(() => selectedMobileCountry.value, () => {
+      userDataLoaded.value = false
+      isExistingUser.value = false
+    })
+
+    /**
+     * Check if user exists and load their data
+     */
+    const checkAndLoadUserData = async () => {
+      if (!form.mobile || userDataLoaded.value) {
+        return
+      }
+
+      try {
+        showLoader('Checking for existing user...')
+        
+        const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
+        console.log('Checking for user with mobile:', fullMobile)
+        
+        const userData = await getUserByMobile(fullMobile)
+        
+        if (userData && userData.found) {
+          console.log('Found existing user:', userData)
+          isExistingUser.value = true
+          
+          if (!form.name && userData.user.name) {
+            form.name = userData.user.name
+            console.log('Prefilled name:', form.name)
+          }
+          
+          if (!form.district && userData.user.district_id) {
+            form.district = userData.user.district_id
+            console.log('Prefilled district:', form.district)
+            
+            await onDistrictChange()
+            
+            if (userData.user.zone_id) {
+              await new Promise(resolve => setTimeout(resolve, 500))
+              form.zone = userData.user.zone_id
+              console.log('Prefilled zone:', form.zone)
+              
+              await onZoneChange()
+              
+              if (userData.user.unit_id) {
+                await new Promise(resolve => setTimeout(resolve, 500))
+                form.unit = userData.user.unit_id
+                console.log('Prefilled unit:', form.unit)
+              }
+            }
+          }
+          
+          userDataLoaded.value = true
+        }
+        
+        hideLoader()
+      } catch (error) {
+        console.error('Error loading user data:', error)
+        hideLoader()
+      }
+    }
+
     // Handle district change
     const onDistrictChange = async () => {
       form.zone = ''
@@ -620,6 +703,9 @@ export default {
       zones,
       units,
       isProcessing,
+      isExistingUser,
+      userDataLoaded,
+      checkAndLoadUserData,
       selectAmount,
       selectCustomAmount,
       nextStep,
