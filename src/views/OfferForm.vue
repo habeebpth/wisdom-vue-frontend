@@ -420,7 +420,9 @@
                 <span v-if="isProcessing">
                   <i class="fas fa-spinner fa-spin mr-2"></i> Processing...
                 </span>
-                <span v-else>Submit Offer</span>
+                <span v-else>
+                  {{ hasExistingOffer ? 'Update Offer' : 'Submit Offer' }}
+                </span>
               </button>
             </div>
           </div>
@@ -588,86 +590,182 @@ export default {
 
     // NEW: Check for existing offers
     const checkExistingOffer = async () => {
-      if (!form.mobile || form.mobile.length < 10) {
-        return
-      }
+    if (!form.mobile || form.mobile.length < 10) {
+      return
+    }
 
-      try {
-        showLoader('Checking for existing offers...')
-        const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
+    try {
+      showLoader('Checking for existing information...')
+      const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
+      
+      console.log('Checking for existing user:', fullMobile)
+      
+      const apiClient = axios.create({
+        baseURL: 'https://www.wisdom-home.cloudocz.com/api',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+      
+      const response = await apiClient.get(`/users/by-mobile?mobile=${fullMobile}`)
+      
+      if (response.data.success && response.data.found && response.data.user) {
+        console.log('User found:', response.data.user)
+        const userData = response.data.user
         
-        console.log('Checking for existing offers for:', fullMobile)
+        // ========================================
+        // STEP 1: PRE-POPULATE MEMBER STATUS
+        // ========================================
+        if (userData.is_member !== null && userData.is_member !== undefined) {
+          // is_member: 1 = member (true), 0 = non-member (false)
+          isMember.value = userData.is_member === 1
+          console.log('✅ Pre-filled member status:', isMember.value)
+        }
         
-        const apiClient = axios.create({
-          baseURL: 'https://www.wisdom-home.cloudocz.com/api',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        })
+        // ========================================
+        // STEP 2: PRE-POPULATE LOCATION DETAILS
+        // ========================================
         
-        const response = await apiClient.get(`/users/by-mobile?mobile=${fullMobile}`)
-        
-        if (response.data.success && response.data.found && response.data.user) {
-          console.log('User found:', response.data.user)
-          
-          const offerResponse = await apiClient.get(`/offers/history?mobile=${fullMobile}`)
-          
-          if (offerResponse.data.history && offerResponse.data.history.length > 0) {
-            const activeOffer = offerResponse.data.history.find(offer => offer.status === 'active')
+        // For Members - populate district, zone, unit
+        if (userData.is_member === 1) {
+          if (userData.district_id) {
+            form.district = userData.district_id
+            console.log('✅ Pre-filled district:', userData.district_id)
             
-            if (activeOffer) {
-              console.log('Active offer found:', activeOffer)
-              hasExistingOffer.value = true
-              existingOfferId.value = activeOffer.id
+            // Load zones for the district
+            try {
+              zones.value = await getZones(userData.district_id)
+              console.log('✅ Loaded zones for district')
               
-              // Pre-populate form
-              form.name = response.data.user.name || form.name
-              form.email = response.data.user.email || form.email
-              form.offerAmount = activeOffer.offerAmount
-              form.installmentType = activeOffer.installments?.toString() || ''
-              
-              // Parse completion date
-              if (activeOffer.completionDate && activeOffer.completionDate !== 'Not specified') {
-                const parts = activeOffer.completionDate.split(' ')
-                if (parts.length === 2) {
-                  const [monthName, year] = parts
-                  const monthMap = {
-                    'January': '1', 'February': '2', 'March': '3', 'April': '4',
-                    'May': '5', 'June': '6', 'July': '7', 'August': '8',
-                    'September': '9', 'October': '10', 'November': '11', 'December': '12'
+              // Set zone after zones are loaded
+              if (userData.zone_id) {
+                form.zone = userData.zone_id
+                console.log('✅ Pre-filled zone:', userData.zone_id)
+                
+                // Load units for the zone
+                try {
+                  units.value = await getUnits(userData.zone_id)
+                  console.log('✅ Loaded units for zone')
+                  
+                  // Set unit after units are loaded
+                  if (userData.unit_id) {
+                    form.unit = userData.unit_id
+                    console.log('✅ Pre-filled unit:', userData.unit_id)
                   }
-                  form.completionMonth = monthMap[monthName] || ''
-                  form.completionYear = year || ''
+                } catch (error) {
+                  console.error('Failed to load units:', error)
                 }
               }
-              
-              form.remark = activeOffer.remark || ''
-              
-              hideLoader()
-              alert(`✅ Existing offer found!\n\nOffer ID: ${activeOffer.id}\nAmount: ₹${activeOffer.offerAmount}\n\nYou can update your offer details in the next steps.`)
-            } else {
-              hasExistingOffer.value = false
-              existingOfferId.value = null
-              hideLoader()
+            } catch (error) {
+              console.error('Failed to load zones:', error)
             }
+          }
+        }
+        // For Non-Members - populate taluk, panchayath, ward
+        else if (userData.is_member === 0) {
+          if (userData.district_id) {
+            form.district = userData.district_id
+            console.log('✅ Pre-filled district:', userData.district_id)
+          }
+          
+          if (userData.taluk) {
+            form.taluk = userData.taluk
+            console.log('✅ Pre-filled taluk:', userData.taluk)
+          }
+          
+          if (userData.panchayath) {
+            form.panchayath = userData.panchayath
+            console.log('✅ Pre-filled panchayath:', userData.panchayath)
+          }
+          
+          if (userData.ward) {
+            form.ward = userData.ward
+            console.log('✅ Pre-filled ward:', userData.ward)
+          }
+        }
+        
+        // ========================================
+        // STEP 3: PRE-POPULATE PERSONAL INFO
+        // ========================================
+        form.name = userData.name || form.name
+        form.email = userData.email || form.email
+        console.log('✅ Pre-filled name and email')
+        
+        // ========================================
+        // STEP 4: PRE-POPULATE OFFER DETAILS
+        // ========================================
+        const offerResponse = await apiClient.get(`/offers/history?mobile=${fullMobile}`)
+        
+        if (offerResponse.data.history && offerResponse.data.history.length > 0) {
+          const activeOffer = offerResponse.data.history.find(offer => offer.status === 'active')
+          
+          if (activeOffer) {
+            console.log('✅ Active offer found:', activeOffer)
+            hasExistingOffer.value = true
+            existingOfferId.value = activeOffer.id
+            
+            // Pre-populate offer details
+            form.offerAmount = activeOffer.offerAmount
+            form.installmentType = activeOffer.installments?.toString() || ''
+            
+            // Parse completion date
+            if (activeOffer.completionDate && activeOffer.completionDate !== 'Not specified') {
+              const parts = activeOffer.completionDate.split(' ')
+              if (parts.length === 2) {
+                const [monthName, year] = parts
+                const monthMap = {
+                  'January': '1', 'February': '2', 'March': '3', 'April': '4',
+                  'May': '5', 'June': '6', 'July': '7', 'August': '8',
+                  'September': '9', 'October': '10', 'November': '11', 'December': '12'
+                }
+                form.completionMonth = monthMap[monthName] || ''
+                form.completionYear = year || ''
+              }
+            }
+            
+            form.remark = activeOffer.remark || ''
+            console.log('✅ Pre-filled offer details')
+            
+            hideLoader()
+            
+            // Show detailed alert
+            alert(`✅ Welcome back!\n\n` +
+                  `📝 Your information has been loaded:\n` +
+                  `• Status: ${isMember.value ? 'Member' : 'Non-Member'}\n` +
+                  `• Existing Offer ID: ${activeOffer.id}\n` +
+                  `• Offer Amount: ₹${activeOffer.offerAmount}\n\n` +
+                  `You can review and update your details.`)
           } else {
             hasExistingOffer.value = false
             existingOfferId.value = null
             hideLoader()
+            
+            // User exists but no active offer
+            alert(`✅ Welcome back!\n\nYour profile has been loaded.\nYou can now create a new offer.`)
           }
         } else {
           hasExistingOffer.value = false
           existingOfferId.value = null
           hideLoader()
+          
+          // User exists but no offers
+          alert(`✅ Welcome back!\n\nYour profile has been loaded.\nYou can now create a new offer.`)
         }
-      } catch (error) {
-        console.error('Error checking existing offer:', error)
+      } else {
+        // User not found
         hasExistingOffer.value = false
         existingOfferId.value = null
         hideLoader()
+        console.log('No existing user found')
       }
+    } catch (error) {
+      console.error('Error checking existing user:', error)
+      hasExistingOffer.value = false
+      existingOfferId.value = null
+      hideLoader()
     }
+  }
 
     // NEW: Watch mobile number for changes
     watch(() => form.mobile, (newMobile) => {
