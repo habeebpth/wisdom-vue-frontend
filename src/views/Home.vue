@@ -3,6 +3,58 @@
     <!-- Banner Component -->
     <Banner />
 
+    <!-- User Statistics Dashboard -->
+    <div v-if="showUserStats && userStats" class="user-stats-section">
+      <div class="stats-container">
+        <div class="stats-header">
+          <h2 class="stats-title">Your Status</h2>
+          <p class="stats-subtitle">{{ userStats.user.name }}</p>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon donations">
+              <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <div class="stat-content">
+              <p class="stat-label">Total Donations</p>
+              <p class="stat-value">{{ userStats.statistics.total_donations }}</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon amount">
+              <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div class="stat-content">
+              <p class="stat-label">Donated Amount</p>
+              <p class="stat-value">₹{{ formatAmount(userStats.statistics.total_donated_amount) }}</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon offers">
+              <i class="fas fa-hourglass-half"></i>
+            </div>
+            <div class="stat-content">
+              <p class="stat-label">Remaining Amount</p>
+              <p class="stat-value">₹{{ formatAmount(userStats.statistics.remaining_amount) }}</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon offer-amount">
+              <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-content">
+              <p class="stat-label">Offer Amount</p>
+              <p class="stat-value">₹{{ formatAmount(userStats.statistics.total_offer_amount) }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- How to Pay Section -->
     <!-- <div class="how-to-pay-section">
       <div class="pay-background">
@@ -78,8 +130,11 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, inject } from 'vue'
+import { ref, computed, onMounted, inject, watch } from 'vue'
+import { useStore } from 'vuex'
 import Banner from '@/components/Banner.vue'
+import { getUserInfo } from '@/utils/localStorage'
+import { getUserByMobile } from '@/utils/api'
 
 export default {
   name: 'Home',
@@ -87,8 +142,13 @@ export default {
     Banner
   },
   setup() {
+    const store = useStore()
     const showVideoModal = ref(false)
     const youtubeVideoId = ref('dQw4w9WgXcQ') // Replace with actual video ID
+    
+    // User statistics
+    const showUserStats = ref(false)
+    const userStats = ref(null)
     
     // Get preloader functions
     const showLoader = inject('showLoader')
@@ -110,9 +170,71 @@ export default {
       document.body.style.overflow = 'auto'
     }
     
+    // Format amount with commas
+    const formatAmount = (amount) => {
+      if (!amount) return '0'
+      return new Intl.NumberFormat('en-IN').format(amount)
+    }
+    
+    // Fetch user statistics
+    const fetchUserStats = async () => {
+      try {
+        const userInfo = getUserInfo()
+        
+        if (userInfo && userInfo.mobile) {
+          console.log('User info found, fetching statistics...')
+          
+          const response = await getUserByMobile(userInfo.mobile)
+          
+          if (response && response.success && response.found) {
+            // Calculate remaining amount using donated amount
+            const totalOfferAmount = response.statistics.total_offer_amount || 0
+            const totalDonatedAmount = response.statistics.total_donated_amount || 0
+            response.statistics.remaining_amount = totalOfferAmount - totalDonatedAmount
+            
+            userStats.value = response
+            showUserStats.value = true
+            console.log('User statistics loaded:', userStats.value)
+          } else {
+            console.log('No user data found for mobile:', userInfo.mobile)
+            showUserStats.value = false
+          }
+        } else {
+          console.log('No mobile number found in user info')
+          showUserStats.value = false
+        }
+      } catch (error) {
+        console.error('Error fetching user statistics:', error)
+        showUserStats.value = false
+      }
+    }
+    
+    // Watch for changes in userInfo from store
+    watch(
+      () => store.state.user.userInfo,
+      (newUserInfo, oldUserInfo) => {
+        // Only fetch if userInfo changed and has mobile
+        if (newUserInfo && newUserInfo.mobile) {
+          // Check if mobile actually changed
+          if (!oldUserInfo || oldUserInfo.mobile !== newUserInfo.mobile) {
+            console.log('User info changed, fetching statistics...')
+            fetchUserStats()
+          }
+        } else if (!newUserInfo) {
+          // User info cleared
+          showUserStats.value = false
+          userStats.value = null
+        }
+      },
+      { deep: true }
+    )
+    
     // Show preloader when the page is loading
-    onMounted(() => {
+    onMounted(async () => {
       showLoader('Loading home page...')
+      
+      // Fetch user statistics
+      await fetchUserStats()
       
       // Simulate a short delay to ensure assets are loaded
       setTimeout(() => {
@@ -124,7 +246,10 @@ export default {
       showVideoModal,
       youtubeEmbedUrl,
       openYouTubeVideo,
-      closeVideoModal
+      closeVideoModal,
+      showUserStats,
+      userStats,
+      formatAmount
     }
   }
 }
@@ -134,6 +259,111 @@ export default {
 .home-container {
   min-height: 100vh;
   background: #f8f9fa;
+}
+
+/* User Statistics Section */
+.user-stats-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 1rem 1rem 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  overflow: hidden;
+  animation: slideInUp 0.8s ease-out both;
+}
+
+.stats-container {
+  padding: 2rem 1.5rem;
+}
+
+.stats-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.stats-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.stats-subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  color: white;
+}
+
+.stat-icon.donations {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-icon.amount {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-icon.offers {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-icon.offer-amount {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* How to Pay Section */
@@ -399,11 +629,35 @@ export default {
 
 /* Responsive Design */
 @media (min-width: 640px) {
+  .user-stats-section,
   .how-to-pay-section,
   .app-support-section,
   .bottom-section {
     margin: 2rem auto;
     max-width: 600px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  
+  .stat-card {
+    padding: 1.5rem;
+  }
+  
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.875rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
   }
   
   .pay-background {
@@ -428,10 +682,15 @@ export default {
 }
 
 @media (min-width: 768px) {
+  .user-stats-section,
   .how-to-pay-section,
   .app-support-section,
   .bottom-section {
     max-width: 800px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
   
   .support-buttons {
@@ -444,6 +703,7 @@ export default {
 }
 
 @media (min-width: 1024px) {
+  .user-stats-section,
   .how-to-pay-section,
   .app-support-section,
   .bottom-section {
@@ -463,15 +723,19 @@ export default {
   }
 }
 
+.user-stats-section {
+  animation: slideInUp 0.8s ease-out 0.1s both;
+}
+
 .how-to-pay-section {
-  animation: slideInUp 0.8s ease-out 0.2s both;
+  animation: slideInUp 0.8s ease-out 0.3s both;
 }
 
 .app-support-section {
-  animation: slideInUp 0.8s ease-out 0.4s both;
+  animation: slideInUp 0.8s ease-out 0.5s both;
 }
 
 .bottom-section {
-  animation: slideInUp 0.8s ease-out 0.6s both;
+  animation: slideInUp 0.8s ease-out 0.7s both;
 }
 </style>
