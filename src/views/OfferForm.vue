@@ -383,6 +383,17 @@
                   </select>
                 </div>
               </div>
+
+              <div>
+                <label for="remark" class="form-label">കുറിപ്പ് (Remark) <span class="text-gray-500"></span></label>
+                <textarea id="remark" v-model="form.remark" rows="3" class="form-input" 
+                  placeholder="Enter any additional remarks or notes (optional)" 
+                  maxlength="1000"></textarea>
+                <p v-if="errors.remark" class="mt-1 text-sm text-red-600">{{ errors.remark }}</p>
+                <div class="text-xs text-gray-500 mt-1">
+                  {{ form.remark ? form.remark.length : 0 }}/1000 characters
+                </div>
+              </div>
             </div>
 
             <div class="flex justify-between mt-8">
@@ -394,7 +405,7 @@
                 <span v-if="isProcessing">
                   <i class="fas fa-spinner fa-spin mr-2"></i> Processing...
                 </span>
-                <span v-else">Submit Offer</span>
+                <span v-else>Submit Offer</span>
               </button>
             </div>
           </div>
@@ -533,7 +544,8 @@ export default {
       installmentType: '',
       customInstallments: null,
       completionYear: '',
-      completionMonth: ''
+      completionMonth: '',
+      remark: ''
     })
 
     // Validation errors
@@ -551,7 +563,8 @@ export default {
       offerAmount: '',
       installmentType: '',
       completionYear: '',
-      completionMonth: ''
+      completionMonth: '',
+      remark: ''
     })
 
     // Location data
@@ -849,7 +862,8 @@ export default {
             installmentType: form.installmentType,
             customInstallments: form.installmentType === 'custom' ? form.customInstallments : null,
             completionYear: form.completionYear,
-            completionMonth: form.completionMonth
+            completionMonth: form.completionMonth,
+            remark: form.remark
           }
 
           // Add member-specific data
@@ -893,7 +907,8 @@ export default {
                 custom_installments: offerData.customInstallments || null,
                 completion_year: offerData.completionYear || null,
                 completion_month: offerData.completionMonth || null,
-                paid_amount: 0 // Default to 0 since we're not collecting this anymore
+                paid_amount: 0, // Default to 0 since we're not collecting this anymore
+                remark: offerData.remark || ''
               })
             });
 

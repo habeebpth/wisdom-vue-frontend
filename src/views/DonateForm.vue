@@ -178,6 +178,17 @@
                 </select>
                 <p v-if="errors.unit" class="mt-1 text-sm text-red-600">{{ errors.unit }}</p>
               </div>
+
+              <div>
+                <label for="remark" class="form-label">Remark <span class="text-gray-500"></span></label>
+                <textarea id="remark" v-model="form.remark" rows="3" class="form-input" 
+                  placeholder="Enter any additional remarks or notes (optional)" 
+                  maxlength="1000"></textarea>
+                <p v-if="errors.remark" class="mt-1 text-sm text-red-600">{{ errors.remark }}</p>
+                <div class="text-xs text-gray-500 mt-1">
+                  {{ form.remark ? form.remark.length : 0 }}/1000 characters
+                </div>
+              </div>
             </div>
 
             <div class="flex justify-between mt-8">
@@ -299,7 +310,8 @@ export default {
       mobile: '', // Will be set properly in onMounted
       district: '',
       zone: '',
-      unit: ''
+      unit: '',
+      remark: ''
     })
 
     // Validation errors
@@ -310,7 +322,8 @@ export default {
       district: '',
       zone: '',
       unit: '',
-      payment: ''
+      payment: '',
+      remark: ''
     })
 
 
@@ -428,6 +441,12 @@ export default {
                 console.log('Prefilled unit:', form.unit)
               }
             }
+          }
+          
+          // Autofill remark from latest donation if available
+          if (!form.remark && userData.user.donation_remark) {
+            form.remark = userData.user.donation_remark
+            console.log('Prefilled donation remark:', form.remark)
           }
           
           userDataLoaded.value = true
@@ -584,7 +603,8 @@ export default {
           mobile: fullMobile, // This should be "+971-527402017" format
           district: form.district,
           zone: form.zone,
-          unit: form.unit
+          unit: form.unit,
+          remark: form.remark
         }
 
         console.log('Order data being sent:', orderData)

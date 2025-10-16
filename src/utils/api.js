@@ -285,6 +285,7 @@ export const submitOffer = async (offerData) => {
       completion_year: offerData.completionYear,
       completion_month: offerData.completionMonth,
       paid_amount: parseFloat(offerData.paidAmount) || 0,
+      remark: offerData.remark || '',
       // Include full mobile numbers for reference
       full_mobile: offerData.mobile,
       full_whatsapp: offerData.whatsapp
