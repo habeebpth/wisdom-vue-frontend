@@ -158,6 +158,21 @@
           <!-- Step 3: Personal Info -->
           <div v-if="currentStep === 3">
             <h2 class="text-xl font-semibold text-gray-700 mb-4">Personal Information</h2>
+            <!-- Existing Offer Notification -->
+<div v-if="hasExistingOffer" class="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+  <div class="flex items-start">
+    <div class="flex-shrink-0">
+      <i class="fas fa-info-circle text-blue-400 text-xl"></i>
+    </div>
+    <div class="ml-3">
+      <h3 class="text-sm font-medium text-blue-800">✅ Existing Offer Found</h3>
+      <div class="mt-1 text-sm text-blue-700">
+        <p><strong>Offer ID:</strong> {{ existingOfferId }}</p>
+        <p class="mt-1">Your form has been pre-filled with your existing offer details. You can modify and update them in the next step.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
             <div class="space-y-4">
               <div>
@@ -468,11 +483,12 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted, inject } from 'vue'
+import { ref, reactive, computed, onMounted, inject, watch } from 'vue'  // ADDED watch
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { getDistricts, getZones, getUnits, submitOffer } from '@/utils/api'
 import { validateMobileNumber, getDefaultCountry, searchCountries, formatMobileForDatabase, formatMobileForDisplay, parseStoredMobileForDisplay } from '@/utils/mobileValidation'
+import axios from 'axios'  // ADDED for API calls
 
 export default {
   name: 'OfferForm',
@@ -480,17 +496,19 @@ export default {
     const store = useStore()
     const router = useRouter()
 
-    // Get preloader functions
     const showLoader = inject('showLoader')
     const hideLoader = inject('hideLoader')
 
-    // Form state
     const currentStep = ref(1)
     const isMember = ref(null)
     const isProcessing = ref(false)
     const sameWhatsAppAsMobile = ref(true)
+    
+    // NEW: State for existing offer detection
+    const hasExistingOffer = ref(false)
+    const existingOfferId = ref(null)
+    const mobileCheckTimeout = ref(null)
 
-    // Country code dropdowns
     const showMobileCountryDropdown = ref(false)
     const showWhatsAppCountryDropdown = ref(false)
     const mobileCountrySearch = ref('')
@@ -498,11 +516,9 @@ export default {
 
     const steps = ['Member', 'Location', 'Personal', 'Offer', 'Confirmation']
 
-    // Default to India
     const selectedMobileCountry = ref(getDefaultCountry())
     const selectedWhatsAppCountry = ref(getDefaultCountry())
 
-    // Kerala districts
     const keralaDistricts = ref([
       { id: 'alappuzha', name: 'Alappuzha' },
       { id: 'ernakulam', name: 'Ernakulam' },
@@ -521,25 +537,17 @@ export default {
       { id: 'other', name: 'Other' }
     ])
 
-    // User form data
     const form = reactive({
-      // Location details (for members)
       district: '',
       zone: '',
       unit: '',
-
-      // Location details (for non-members)
       taluk: '',
       panchayath: '',
       ward: '',
-
-      // Personal information
       name: store.state.user.name || '',
       mobile: store.state.user.mobile || '',
       whatsapp: '',
       email: '',
-
-      // Offer details
       offerAmount: null,
       installmentType: '',
       customInstallments: null,
@@ -548,7 +556,6 @@ export default {
       remark: ''
     })
 
-    // Validation errors
     const errors = reactive({
       memberStatus: '',
       district: '',
@@ -567,12 +574,10 @@ export default {
       remark: ''
     })
 
-    // Location data
     const districts = ref([])
     const zones = ref([])
     const units = ref([])
 
-    // Computed properties
     const filteredMobileCountries = computed(() => {
       return searchCountries(mobileCountrySearch.value)
     })
@@ -581,7 +586,101 @@ export default {
       return searchCountries(whatsappCountrySearch.value)
     })
 
-    // Country selection methods
+    // NEW: Check for existing offers
+    const checkExistingOffer = async () => {
+      if (!form.mobile || form.mobile.length < 10) {
+        return
+      }
+
+      try {
+        showLoader('Checking for existing offers...')
+        const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
+        
+        console.log('Checking for existing offers for:', fullMobile)
+        
+        const apiClient = axios.create({
+          baseURL: 'https://www.wisdom-home.cloudocz.com/api',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        })
+        
+        const response = await apiClient.get(`/users/by-mobile?mobile=${fullMobile}`)
+        
+        if (response.data.success && response.data.found && response.data.user) {
+          console.log('User found:', response.data.user)
+          
+          const offerResponse = await apiClient.get(`/offers/history?mobile=${fullMobile}`)
+          
+          if (offerResponse.data.history && offerResponse.data.history.length > 0) {
+            const activeOffer = offerResponse.data.history.find(offer => offer.status === 'active')
+            
+            if (activeOffer) {
+              console.log('Active offer found:', activeOffer)
+              hasExistingOffer.value = true
+              existingOfferId.value = activeOffer.id
+              
+              // Pre-populate form
+              form.name = response.data.user.name || form.name
+              form.email = response.data.user.email || form.email
+              form.offerAmount = activeOffer.offerAmount
+              form.installmentType = activeOffer.installments?.toString() || ''
+              
+              // Parse completion date
+              if (activeOffer.completionDate && activeOffer.completionDate !== 'Not specified') {
+                const parts = activeOffer.completionDate.split(' ')
+                if (parts.length === 2) {
+                  const [monthName, year] = parts
+                  const monthMap = {
+                    'January': '1', 'February': '2', 'March': '3', 'April': '4',
+                    'May': '5', 'June': '6', 'July': '7', 'August': '8',
+                    'September': '9', 'October': '10', 'November': '11', 'December': '12'
+                  }
+                  form.completionMonth = monthMap[monthName] || ''
+                  form.completionYear = year || ''
+                }
+              }
+              
+              form.remark = activeOffer.remark || ''
+              
+              hideLoader()
+              alert(`✅ Existing offer found!\n\nOffer ID: ${activeOffer.id}\nAmount: ₹${activeOffer.offerAmount}\n\nYou can update your offer details in the next steps.`)
+            } else {
+              hasExistingOffer.value = false
+              existingOfferId.value = null
+              hideLoader()
+            }
+          } else {
+            hasExistingOffer.value = false
+            existingOfferId.value = null
+            hideLoader()
+          }
+        } else {
+          hasExistingOffer.value = false
+          existingOfferId.value = null
+          hideLoader()
+        }
+      } catch (error) {
+        console.error('Error checking existing offer:', error)
+        hasExistingOffer.value = false
+        existingOfferId.value = null
+        hideLoader()
+      }
+    }
+
+    // NEW: Watch mobile number for changes
+    watch(() => form.mobile, (newMobile) => {
+      if (newMobile && newMobile.length >= 10) {
+        if (mobileCheckTimeout.value) {
+          clearTimeout(mobileCheckTimeout.value)
+        }
+        mobileCheckTimeout.value = setTimeout(() => {
+          checkExistingOffer()
+        }, 800)
+      }
+    })
+
     const selectMobileCountry = (country) => {
       selectedMobileCountry.value = country
       showMobileCountryDropdown.value = false
@@ -594,7 +693,6 @@ export default {
       whatsappCountrySearch.value = ''
     }
 
-    // WhatsApp same as mobile functionality
     const onSameWhatsAppChange = () => {
       if (sameWhatsAppAsMobile.value) {
         form.whatsapp = form.mobile
@@ -604,7 +702,6 @@ export default {
       }
     }
 
-    // Get WhatsApp display
     const getWhatsAppDisplay = () => {
       if (sameWhatsAppAsMobile.value) {
         return `${selectedMobileCountry.value.code} ${form.mobile} (Same as mobile)`
@@ -612,7 +709,6 @@ export default {
       return `${selectedWhatsAppCountry.value.code} ${form.whatsapp}`
     }
 
-    // Get installment text for summary
     const getInstallmentText = () => {
       if (form.installmentType === 'custom') {
         return `${form.customInstallments} installments`
@@ -623,7 +719,6 @@ export default {
       }
     }
 
-    // Get month name from month number
     const getMonthName = (monthNumber) => {
       const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -632,7 +727,6 @@ export default {
       return months[parseInt(monthNumber) - 1] || ''
     }
 
-    // Load districts on mount
     onMounted(async () => {
       try {
         showLoader('Loading districts...')
@@ -643,7 +737,6 @@ export default {
         hideLoader()
       }
 
-      // Parse stored mobile number correctly - ADD THIS SECTION
       const storedMobile = store.state.user.mobile
       if (storedMobile) {
         console.log('Stored mobile from store:', storedMobile)
@@ -651,16 +744,13 @@ export default {
         const parsed = parseStoredMobileForDisplay(storedMobile)
         console.log('Parsed mobile:', parsed)
 
-        // Set the country and mobile number correctly
         selectedMobileCountry.value = parsed.country
         form.mobile = parsed.mobileNumber
 
-        // Also set WhatsApp to same values by default
         selectedWhatsAppCountry.value = parsed.country
         form.whatsapp = parsed.mobileNumber
       }
 
-      // Close dropdowns when clicking outside
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.relative')) {
           showMobileCountryDropdown.value = false
@@ -669,7 +759,6 @@ export default {
       })
     })
 
-    // Handle district change for member
     const onDistrictChange = async () => {
       if (isMember.value) {
         form.zone = ''
@@ -690,7 +779,6 @@ export default {
       }
     }
 
-    // Handle zone change
     const onZoneChange = async () => {
       form.unit = ''
       units.value = []
@@ -707,7 +795,6 @@ export default {
       }
     }
 
-    // Go to next step
     const nextStep = () => {
       if (currentStep.value === 1) {
         if (isMember.value === null) {
@@ -720,29 +807,23 @@ export default {
       currentStep.value++
     }
 
-    // Go to previous step
     const prevStep = () => {
       currentStep.value--
     }
 
-    // Go back to home
     const goBack = () => {
       router.push('/')
     }
 
-    // Go to home after submission
     const goHome = () => {
       router.push('/')
     }
 
-    // View payment history
     const viewHistory = () => {
       router.push('/payment-history')
     }
 
-    // Validate location details
     const validateLocationAndContinue = () => {
-      // Reset errors
       errors.district = ''
       errors.zone = ''
       errors.unit = ''
@@ -751,16 +832,13 @@ export default {
 
       let isValid = true
 
-      // Location fields are now optional for both members and non-members
-
       if (isValid) {
         nextStep()
       }
     }
 
-    // Validate personal information
-    const validatePersonalInfoAndContinue = () => {
-      // Reset errors
+    // MODIFIED: Made async and added checkExistingOffer
+    const validatePersonalInfoAndContinue = async () => {
       errors.name = ''
       errors.mobile = ''
       errors.whatsapp = ''
@@ -768,20 +846,17 @@ export default {
 
       let isValid = true
 
-      // Validate name
       if (!form.name.trim()) {
         errors.name = 'Name is required'
         isValid = false
       }
 
-      // Validate mobile using global validation
       const mobileError = validateMobileNumber(form.mobile, selectedMobileCountry.value, 'Mobile')
       if (mobileError) {
         errors.mobile = mobileError
         isValid = false
       }
 
-      // Validate WhatsApp (only if not same as mobile)
       if (!sameWhatsAppAsMobile.value) {
         const whatsappError = validateMobileNumber(form.whatsapp, selectedWhatsAppCountry.value, 'WhatsApp')
         if (whatsappError) {
@@ -789,19 +864,19 @@ export default {
           isValid = false
         }
       } else {
-        // Auto-sync WhatsApp with mobile
         form.whatsapp = form.mobile
         selectedWhatsAppCountry.value = selectedMobileCountry.value
       }
 
-      // Validate email (if provided)
       if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
         errors.email = 'Please enter a valid email address'
         isValid = false
       }
 
       if (isValid) {
-        // Save user info to store with full mobile format
+        // NEW: Check for existing offer before continuing
+        await checkExistingOffer()
+        
         const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
 
         store.commit('user/setUserInfo', {
@@ -813,9 +888,8 @@ export default {
       }
     }
 
-    // Submit offer
+    // MODIFIED: Updated to show appropriate message
     const submitOffer = async () => {
-      // Reset errors
       errors.offerAmount = ''
       errors.installmentType = ''
       errors.completionYear = ''
@@ -823,13 +897,11 @@ export default {
 
       let isValid = true
 
-      // Validate offer amount
       if (!form.offerAmount || form.offerAmount <= 0) {
         errors.offerAmount = 'Please enter a valid offer amount'
         isValid = false
       }
 
-      // Validate installment type
       if (!form.installmentType) {
         errors.installmentType = 'Please select a payment schedule'
         isValid = false
@@ -838,19 +910,16 @@ export default {
         isValid = false
       }
 
-      // Completion year and month are now optional - no validation required
-
       if (isValid) {
         try {
           isProcessing.value = true
-          showLoader('Submitting your offer...')
+          showLoader(hasExistingOffer.value ? 'Updating your offer...' : 'Submitting your offer...')  // MODIFIED
 
           const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
           const fullWhatsApp = sameWhatsAppAsMobile.value
             ? fullMobile
             : formatMobileForDatabase(form.whatsapp, selectedWhatsAppCountry.value)
 
-          // Prepare data for the backend API
           const offerData = {
             name: form.name,
             mobile: fullMobile,
@@ -866,7 +935,6 @@ export default {
             remark: form.remark
           }
 
-          // Add member-specific data
           if (isMember.value) {
             offerData.zone = form.zone;
             offerData.unit = form.unit;
@@ -876,10 +944,8 @@ export default {
             offerData.ward = form.ward;
           }
 
-          // Send data directly to the backend API
           console.log('Submitting offer with data:', offerData);
 
-          // Direct API call to the backend
           try {
             const apiUrl = 'https://www.wisdom-home.cloudocz.com/api/offers/submit';
             console.log('Making direct POST request to:', apiUrl);
@@ -907,23 +973,26 @@ export default {
                 custom_installments: offerData.customInstallments || null,
                 completion_year: offerData.completionYear || null,
                 completion_month: offerData.completionMonth || null,
-                paid_amount: 0, // Default to 0 since we're not collecting this anymore
+                paid_amount: 0,
                 remark: offerData.remark || ''
               })
             });
 
-            // Process the response
             if (apiResponse.status === 200) {
               const responseData = await apiResponse.json();
               console.log('Direct API Response success:', responseData);
 
+              // NEW: Check if this was an update
+              const wasUpdate = responseData.isUpdate || false
+              const message = responseData.message || (wasUpdate ? '✅ Offer updated successfully!' : '✅ Offer submitted successfully!')
+
               const response = {
                 success: true,
                 offerId: responseData.offerId || 'OF-' + Date.now(),
-                date: responseData.date || new Date().toISOString()
+                date: responseData.date || new Date().toISOString(),
+                isUpdate: wasUpdate  // NEW
               };
 
-              // Create history object - only on success
               const historyData = {
                 id: response.offerId,
                 type: 'offer',
@@ -938,15 +1007,14 @@ export default {
                 status: 'active'
               }
 
-              // Save to store only on success
               store.dispatch('payment/addOfferToHistory', historyData)
 
               isProcessing.value = false
               hideLoader()
+              alert(message)  // MODIFIED
               nextStep()
 
             } else {
-              // Handle API error responses (422, 500, etc.)
               console.error('API returned error status:', apiResponse.status);
 
               let errorMessage = 'Failed to submit offer. Please try again.';
@@ -955,7 +1023,6 @@ export default {
                 const errorData = await apiResponse.json();
                 console.error('API Error Details:', errorData);
 
-                // Handle validation errors (422)
                 if (apiResponse.status === 422 && errorData.errors) {
                   const errorMessages = [];
                   for (const field in errorData.errors) {
@@ -975,7 +1042,6 @@ export default {
             }
 
           } catch (apiError) {
-            // Handle network errors or fetch failures
             console.error('Direct API call failed:', apiError);
             isProcessing.value = false
             hideLoader()
@@ -983,7 +1049,6 @@ export default {
           }
 
         } catch (error) {
-          // Handle unexpected errors
           console.error('Error submitting offer:', error)
           isProcessing.value = false
           hideLoader()
@@ -991,16 +1056,6 @@ export default {
         }
       }
     }
-
-    // Close dropdowns when clicking outside
-    onMounted(() => {
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.relative')) {
-          showMobileCountryDropdown.value = false
-          showWhatsAppCountryDropdown.value = false
-        }
-      })
-    })
 
     return {
       currentStep,
@@ -1038,7 +1093,11 @@ export default {
       validatePersonalInfoAndContinue,
       submitOffer,
       getInstallmentText,
-      getMonthName
+      getMonthName,
+      // NEW: Added to return
+      hasExistingOffer,
+      existingOfferId,
+      checkExistingOffer
     }
   }
 }
