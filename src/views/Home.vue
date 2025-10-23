@@ -296,7 +296,7 @@ export default {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
@@ -361,9 +361,8 @@ export default {
   font-weight: 700;
   color: #1f2937;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.3;
 }
 
 /* How to Pay Section */
@@ -642,6 +641,10 @@ export default {
     gap: 1.25rem;
   }
   
+  .stats-container {
+    padding: 2rem 2rem;
+  }
+  
   .stat-card {
     padding: 1.5rem;
   }
@@ -690,7 +693,12 @@ export default {
   }
   
   .stats-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .stats-container {
+    padding: 2.5rem 2.5rem;
   }
   
   .support-buttons {
@@ -708,6 +716,21 @@ export default {
   .app-support-section,
   .bottom-section {
     max-width: 1000px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem 1rem;
+  }
+  
+  .stat-icon {
+    margin-bottom: 0.5rem;
   }
 }
 
