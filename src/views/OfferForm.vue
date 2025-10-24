@@ -32,31 +32,127 @@
         <div class="p-6">
           <h1 class="text-2xl font-bold text-gray-800 mb-6">Offer Form</h1>
 
-          <!-- Step 1: Member Check -->
+          <!-- Step 1: Member Check & Program Check (COMBINED) -->
           <div v-if="currentStep === 1">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">നിങ്ങൾ വിസ്‌ഡം മെമ്പർ ആണോ ?</h2>
+            <!-- Member Status -->
+            <div class="mb-8">
+              <h2 class="text-xl font-semibold text-gray-700 mb-4">നിങ്ങൾ വിസ്‌ഡം മെമ്പർ ആണോ ?</h2>
 
-            <div class="space-y-4">
-              <div class="flex items-center space-x-3">
-                <input id="member-yes" v-model="isMember" type="radio" :value="true" name="member-status"
-                  class="h-5 w-5 text-green-600" />
-                <label for="member-yes" class="text-lg">അതെ (Yes)</label>
+              <div class="space-y-4">
+                <div class="flex items-center space-x-3">
+                  <input id="member-yes" v-model="isMember" type="radio" :value="true" name="member-status"
+                    class="h-5 w-5 text-green-600" />
+                  <label for="member-yes" class="text-lg">അതെ (Yes)</label>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                  <input id="member-no" v-model="isMember" type="radio" :value="false" name="member-status"
+                    class="h-5 w-5 text-green-600" />
+                  <label for="member-no" class="text-lg">അല്ല (No)</label>
+                </div>
               </div>
 
-              <div class="flex items-center space-x-3">
-                <input id="member-no" v-model="isMember" type="radio" :value="false" name="member-status"
-                  class="h-5 w-5 text-green-600" />
-                <label for="member-no" class="text-lg">അല്ല (No)</label>
-              </div>
+              <div v-if="errors.memberStatus" class="text-red-600 mt-2">{{ errors.memberStatus }}</div>
             </div>
 
-            <div v-if="errors.memberStatus" class="text-red-600 mt-2">{{ errors.memberStatus }}</div>
+            <!-- Program Selection (NEW - Integrated in Step 1) -->
+            <div v-if="hasProgramCountries" class="border-t pt-6">
+              <h2 class="text-xl font-semibold text-gray-700 mb-4">
+                ഏതെങ്കിലും പ്രോഗ്രാം വഴിയാണോ താങ്കൾ ഓഫർ നൽകുന്നത് ?
+              </h2>
+
+              <div class="space-y-4">
+                <div class="flex items-center space-x-3">
+                  <input 
+                    id="program-yes" 
+                    v-model="hasProgram" 
+                    type="radio" 
+                    :value="true" 
+                    name="program-status"
+                    class="h-5 w-5 text-green-600" 
+                  />
+                  <label for="program-yes" class="text-lg">അതെ (Yes)</label>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                  <input 
+                    id="program-no" 
+                    v-model="hasProgram" 
+                    type="radio" 
+                    :value="false" 
+                    name="program-status"
+                    class="h-5 w-5 text-green-600" 
+                  />
+                  <label for="program-no" class="text-lg">അല്ല (No)</label>
+                </div>
+              </div>
+
+              <div v-if="errors.programStatus" class="text-red-600 mt-2">
+                {{ errors.programStatus }}
+              </div>
+
+              <!-- Show program selection if user selects Yes -->
+              <div v-if="hasProgram === true" class="mt-6 space-y-4">
+                <div>
+                  <label for="program-country" class="form-label">
+                    പ്രോഗ്രാം നടക്കുന്ന രാജ്യം (Program Country) 
+                    <span class="text-red-500">*</span>
+                  </label>
+                  <select 
+                    id="program-country" 
+                    v-model="form.programCountry" 
+                    class="form-select" 
+                    @change="onProgramCountryChange"
+                  >
+                    <option value="" disabled>Select a program country</option>
+                    <option 
+                      v-for="country in programCountries" 
+                      :key="country.id" 
+                      :value="country.id"
+                    >
+                      {{ country.name }}
+                    </option>
+                  </select>
+                  <p v-if="errors.programCountry" class="mt-1 text-sm text-red-600">
+                    {{ errors.programCountry }}
+                  </p>
+                </div>
+
+                <div>
+                  <label for="program" class="form-label">
+                    പ്രോഗ്രാം (Program) 
+                    <span class="text-red-500">*</span>
+                  </label>
+                  <select 
+                    id="program" 
+                    v-model="form.program" 
+                    class="form-select" 
+                    :disabled="!form.programCountry"
+                  >
+                    <option value="" disabled>Select a program</option>
+                    <option 
+                      v-for="program in programs" 
+                      :key="program.id" 
+                      :value="program.id"
+                    >
+                      {{ program.name }}
+                    </option>
+                  </select>
+                  <p v-if="errors.program" class="mt-1 text-sm text-red-600">
+                    {{ errors.program }}
+                  </p>
+                  <p v-if="!form.programCountry" class="mt-1 text-sm text-gray-500">
+                    Please select a program country first
+                  </p>
+                </div>
+              </div>
+            </div>
 
             <div class="flex justify-between mt-8">
               <button @click="goBack" class="btn bg-gray-200 hover:bg-gray-300 text-gray-700">
                 Back
               </button>
-              <button @click="nextStep" class="btn btn-primary bg-green-600 hover:bg-green-700 text-white">
+              <button @click="validateMemberAndProgramStep" class="btn btn-primary bg-green-600 hover:bg-green-700 text-white">
                 Continue
               </button>
             </div>
@@ -159,20 +255,20 @@
           <div v-if="currentStep === 3">
             <h2 class="text-xl font-semibold text-gray-700 mb-4">Personal Information</h2>
             <!-- Existing Offer Notification -->
-<div v-if="hasExistingOffer" class="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-  <div class="flex items-start">
-    <div class="flex-shrink-0">
-      <i class="fas fa-info-circle text-blue-400 text-xl"></i>
-    </div>
-    <div class="ml-3">
-      <h3 class="text-sm font-medium text-blue-800">✅ Existing Offer Found</h3>
-      <div class="mt-1 text-sm text-blue-700">
-        <p><strong>Offer ID:</strong> {{ existingOfferId }}</p>
-        <p class="mt-1">Your form has been pre-filled with your existing offer details. You can modify and update them in the next step.</p>
-      </div>
-    </div>
-  </div>
-</div>
+            <div v-if="hasExistingOffer" class="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+              <div class="flex items-start">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-info-circle text-blue-400 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-blue-800">✅ Existing Offer Found</h3>
+                  <div class="mt-1 text-sm text-blue-700">
+                    <p><strong>Offer ID:</strong> {{ existingOfferId }}</p>
+                    <p class="mt-1">Your form has been pre-filled with your existing offer details. You can modify and update them in the next step.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div class="space-y-4">
               <div>
@@ -485,12 +581,12 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted, inject, watch } from 'vue'  // ADDED watch
+import { ref, reactive, computed, onMounted, inject, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { getDistricts, getZones, getUnits, submitOffer } from '@/utils/api'
 import { validateMobileNumber, getDefaultCountry, searchCountries, formatMobileForDatabase, formatMobileForDisplay, parseStoredMobileForDisplay } from '@/utils/mobileValidation'
-import axios from 'axios'  // ADDED for API calls
+import axios from 'axios'
 
 export default {
   name: 'OfferForm',
@@ -506,16 +602,22 @@ export default {
     const isProcessing = ref(false)
     const sameWhatsAppAsMobile = ref(true)
     
-    // NEW: State for existing offer detection
+    // Existing offer detection
     const hasExistingOffer = ref(false)
     const existingOfferId = ref(null)
     const mobileCheckTimeout = ref(null)
+
+    // Program state variables
+    const hasProgram = ref(null)
+    const programCountries = ref([])
+    const programs = ref([])
 
     const showMobileCountryDropdown = ref(false)
     const showWhatsAppCountryDropdown = ref(false)
     const mobileCountrySearch = ref('')
     const whatsappCountrySearch = ref('')
 
+    // UPDATED: Removed 'Program' as separate step
     const steps = ['Member', 'Location', 'Personal', 'Offer', 'Confirmation']
 
     const selectedMobileCountry = ref(getDefaultCountry())
@@ -550,6 +652,8 @@ export default {
       mobile: store.state.user.mobile || '',
       whatsapp: '',
       email: '',
+      programCountry: '',
+      program: '',
       offerAmount: null,
       installmentType: '',
       customInstallments: null,
@@ -560,6 +664,9 @@ export default {
 
     const errors = reactive({
       memberStatus: '',
+      programStatus: '',
+      programCountry: '',
+      program: '',
       district: '',
       zone: '',
       unit: '',
@@ -588,186 +695,248 @@ export default {
       return searchCountries(whatsappCountrySearch.value)
     })
 
-    // NEW: Check for existing offers
-    const checkExistingOffer = async () => {
-    if (!form.mobile || form.mobile.length < 10) {
-      return
+    // Check if there are any program countries available
+    const hasProgramCountries = computed(() => {
+      return programCountries.value && programCountries.value.length > 0
+    })
+
+    // Get API base URL from environment
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
+    // API functions for programs
+    const getProgramCountries = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/locations/program-countries`)
+        return response.data.program_countries || []
+      } catch (error) {
+        console.error('Failed to load program countries:', error)
+        return []
+      }
     }
 
-    try {
-      showLoader('Checking for existing information...')
-      const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
-      
-      console.log('Checking for existing user:', fullMobile)
-      
-      const apiClient = axios.create({
-        baseURL: 'https://www.wisdom-home.cloudocz.com/api',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+    const getPrograms = async (programCountryId) => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/locations/programs?program_country_id=${programCountryId}`)
+        return response.data.programs || []
+      } catch (error) {
+        console.error('Failed to load programs:', error)
+        return []
+      }
+    }
+
+    // Program country change handler
+    const onProgramCountryChange = async () => {
+      form.program = ''
+      programs.value = []
+
+      if (form.programCountry) {
+        try {
+          showLoader('Loading programs...')
+          programs.value = await getPrograms(form.programCountry)
+          hideLoader()
+        } catch (error) {
+          console.error('Failed to load programs:', error)
+          hideLoader()
         }
-      })
-      
-      const response = await apiClient.get(`/users/by-mobile?mobile=${fullMobile}`)
-      
-      if (response.data.success && response.data.found && response.data.user) {
-        console.log('User found:', response.data.user)
-        const userData = response.data.user
-        
-        // ========================================
-        // STEP 1: PRE-POPULATE MEMBER STATUS
-        // ========================================
-        if (userData.is_member !== null && userData.is_member !== undefined) {
-          // is_member: 1 = member (true), 0 = non-member (false)
-          isMember.value = userData.is_member === 1
-          console.log('✅ Pre-filled member status:', isMember.value)
+      }
+    }
+
+    // NEW: Combined validation for member and program in Step 1
+    const validateMemberAndProgramStep = () => {
+      errors.memberStatus = ''
+      errors.programStatus = ''
+      errors.programCountry = ''
+      errors.program = ''
+
+      let isValid = true
+
+      // Validate member status
+      if (isMember.value === null) {
+        errors.memberStatus = 'Please select whether you are a member or not'
+        isValid = false
+      }
+
+      // Validate program status
+      if (hasProgram.value === null) {
+        errors.programStatus = 'Please select whether you are participating through a program'
+        isValid = false
+      }
+
+      // If program is selected, validate country and program
+      if (hasProgram.value === true) {
+        if (!form.programCountry) {
+          errors.programCountry = 'Please select a program country'
+          isValid = false
         }
         
-        // ========================================
-        // STEP 2: PRE-POPULATE LOCATION DETAILS
-        // ========================================
+        if (!form.program) {
+          errors.program = 'Please select a program'
+          isValid = false
+        }
+      }
+
+      if (isValid) {
+        currentStep.value++
+      }
+    }
+
+    // Check for existing offers
+    const checkExistingOffer = async () => {
+      if (!form.mobile || form.mobile.length < 10) {
+        return
+      }
+
+      try {
+        showLoader('Checking for existing information...')
+        const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
         
-        // For Members - populate district, zone, unit
-        if (userData.is_member === 1) {
-          if (userData.district_id) {
-            form.district = userData.district_id
-            console.log('✅ Pre-filled district:', userData.district_id)
-            
-            // Load zones for the district
-            try {
-              zones.value = await getZones(userData.district_id)
-              console.log('✅ Loaded zones for district')
+        console.log('Checking for existing user:', fullMobile)
+        
+        const apiClient = axios.create({
+          baseURL: API_BASE_URL,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        })
+        
+        const response = await apiClient.get(`/users/by-mobile?mobile=${fullMobile}`)
+        
+        if (response.data.success && response.data.found && response.data.user) {
+          console.log('User found:', response.data.user)
+          const userData = response.data.user
+          
+          // Pre-populate member status
+          if (userData.is_member !== null && userData.is_member !== undefined) {
+            isMember.value = userData.is_member === 1
+            console.log('✅ Pre-filled member status:', isMember.value)
+          }
+          
+          // Pre-populate location details
+          if (userData.is_member === 1) {
+            if (userData.district_id) {
+              form.district = userData.district_id
+              console.log('✅ Pre-filled district:', userData.district_id)
               
-              // Set zone after zones are loaded
-              if (userData.zone_id) {
-                form.zone = userData.zone_id
-                console.log('✅ Pre-filled zone:', userData.zone_id)
+              try {
+                zones.value = await getZones(userData.district_id)
+                console.log('✅ Loaded zones for district')
                 
-                // Load units for the zone
-                try {
-                  units.value = await getUnits(userData.zone_id)
-                  console.log('✅ Loaded units for zone')
+                if (userData.zone_id) {
+                  form.zone = userData.zone_id
+                  console.log('✅ Pre-filled zone:', userData.zone_id)
                   
-                  // Set unit after units are loaded
-                  if (userData.unit_id) {
-                    form.unit = userData.unit_id
-                    console.log('✅ Pre-filled unit:', userData.unit_id)
+                  try {
+                    units.value = await getUnits(userData.zone_id)
+                    console.log('✅ Loaded units for zone')
+                    
+                    if (userData.unit_id) {
+                      form.unit = userData.unit_id
+                      console.log('✅ Pre-filled unit:', userData.unit_id)
+                    }
+                  } catch (error) {
+                    console.error('Failed to load units:', error)
                   }
-                } catch (error) {
-                  console.error('Failed to load units:', error)
                 }
-              }
-            } catch (error) {
-              console.error('Failed to load zones:', error)
-            }
-          }
-        }
-        // For Non-Members - populate taluk, panchayath, ward
-        else if (userData.is_member === 0) {
-          if (userData.district_id) {
-            form.district = userData.district_id
-            console.log('✅ Pre-filled district:', userData.district_id)
-          }
-          
-          if (userData.taluk) {
-            form.taluk = userData.taluk
-            console.log('✅ Pre-filled taluk:', userData.taluk)
-          }
-          
-          if (userData.panchayath) {
-            form.panchayath = userData.panchayath
-            console.log('✅ Pre-filled panchayath:', userData.panchayath)
-          }
-          
-          if (userData.ward) {
-            form.ward = userData.ward
-            console.log('✅ Pre-filled ward:', userData.ward)
-          }
-        }
-        
-        // ========================================
-        // STEP 3: PRE-POPULATE PERSONAL INFO
-        // ========================================
-        form.name = userData.name || form.name
-        form.email = userData.email || form.email
-        console.log('✅ Pre-filled name and email')
-        
-        // ========================================
-        // STEP 4: PRE-POPULATE OFFER DETAILS
-        // ========================================
-        const offerResponse = await apiClient.get(`/offers/history?mobile=${fullMobile}`)
-        
-        if (offerResponse.data.history && offerResponse.data.history.length > 0) {
-          const activeOffer = offerResponse.data.history.find(offer => offer.status === 'active')
-          
-          if (activeOffer) {
-            console.log('✅ Active offer found:', activeOffer)
-            hasExistingOffer.value = true
-            existingOfferId.value = activeOffer.id
-            
-            // Pre-populate offer details
-            form.offerAmount = activeOffer.offerAmount
-            form.installmentType = activeOffer.installments?.toString() || ''
-            
-            // Parse completion date
-            if (activeOffer.completionDate && activeOffer.completionDate !== 'Not specified') {
-              const parts = activeOffer.completionDate.split(' ')
-              if (parts.length === 2) {
-                const [monthName, year] = parts
-                const monthMap = {
-                  'January': '1', 'February': '2', 'March': '3', 'April': '4',
-                  'May': '5', 'June': '6', 'July': '7', 'August': '8',
-                  'September': '9', 'October': '10', 'November': '11', 'December': '12'
-                }
-                form.completionMonth = monthMap[monthName] || ''
-                form.completionYear = year || ''
+              } catch (error) {
+                console.error('Failed to load zones:', error)
               }
             }
+          } else if (userData.is_member === 0) {
+            if (userData.district_id) {
+              form.district = userData.district_id
+              console.log('✅ Pre-filled district:', userData.district_id)
+            }
             
-            form.remark = activeOffer.remark || ''
-            console.log('✅ Pre-filled offer details')
+            if (userData.taluk) {
+              form.taluk = userData.taluk
+              console.log('✅ Pre-filled taluk:', userData.taluk)
+            }
             
-            hideLoader()
+            if (userData.panchayath) {
+              form.panchayath = userData.panchayath
+              console.log('✅ Pre-filled panchayath:', userData.panchayath)
+            }
             
-            // Show detailed alert
-            alert(`✅ Welcome back!\n\n` +
-                  `📝 Your information has been loaded:\n` +
-                  `• Status: ${isMember.value ? 'Member' : 'Non-Member'}\n` +
-                  `• Existing Offer ID: ${activeOffer.id}\n` +
-                  `• Offer Amount: ₹${activeOffer.offerAmount}\n\n` +
-                  `You can review and update your details.`)
+            if (userData.ward) {
+              form.ward = userData.ward
+              console.log('✅ Pre-filled ward:', userData.ward)
+            }
+          }
+          
+          // Pre-populate personal info
+          form.name = userData.name || form.name
+          form.email = userData.email || form.email
+          console.log('✅ Pre-filled name and email')
+          
+          // Pre-populate offer details
+          const offerResponse = await apiClient.get(`/offers/history?mobile=${fullMobile}`)
+          
+          if (offerResponse.data.history && offerResponse.data.history.length > 0) {
+            const activeOffer = offerResponse.data.history.find(offer => offer.status === 'active')
+            
+            if (activeOffer) {
+              console.log('✅ Active offer found:', activeOffer)
+              hasExistingOffer.value = true
+              existingOfferId.value = activeOffer.id
+              
+              form.offerAmount = activeOffer.offerAmount
+              form.installmentType = activeOffer.installments?.toString() || ''
+              
+              if (activeOffer.completionDate && activeOffer.completionDate !== 'Not specified') {
+                const parts = activeOffer.completionDate.split(' ')
+                if (parts.length === 2) {
+                  const [monthName, year] = parts
+                  const monthMap = {
+                    'January': '1', 'February': '2', 'March': '3', 'April': '4',
+                    'May': '5', 'June': '6', 'July': '7', 'August': '8',
+                    'September': '9', 'October': '10', 'November': '11', 'December': '12'
+                  }
+                  form.completionMonth = monthMap[monthName] || ''
+                  form.completionYear = year || ''
+                }
+              }
+              
+              form.remark = activeOffer.remark || ''
+              console.log('✅ Pre-filled offer details')
+              
+              hideLoader()
+              
+              alert(`✅ Welcome back!\n\n` +
+                    `📝 Your information has been loaded:\n` +
+                    `• Status: ${isMember.value ? 'Member' : 'Non-Member'}\n` +
+                    `• Existing Offer ID: ${activeOffer.id}\n` +
+                    `• Offer Amount: ₹${activeOffer.offerAmount}\n\n` +
+                    `You can review and update your details.`)
+            } else {
+              hasExistingOffer.value = false
+              existingOfferId.value = null
+              hideLoader()
+              
+              alert(`✅ Welcome back!\n\nYour profile has been loaded.\nYou can now create a new offer.`)
+            }
           } else {
             hasExistingOffer.value = false
             existingOfferId.value = null
             hideLoader()
             
-            // User exists but no active offer
             alert(`✅ Welcome back!\n\nYour profile has been loaded.\nYou can now create a new offer.`)
           }
         } else {
           hasExistingOffer.value = false
           existingOfferId.value = null
           hideLoader()
-          
-          // User exists but no offers
-          alert(`✅ Welcome back!\n\nYour profile has been loaded.\nYou can now create a new offer.`)
+          console.log('No existing user found')
         }
-      } else {
-        // User not found
+      } catch (error) {
+        console.error('Error checking existing user:', error)
         hasExistingOffer.value = false
         existingOfferId.value = null
         hideLoader()
-        console.log('No existing user found')
       }
-    } catch (error) {
-      console.error('Error checking existing user:', error)
-      hasExistingOffer.value = false
-      existingOfferId.value = null
-      hideLoader()
     }
-  }
 
-    // NEW: Watch mobile number for changes
+    // Watch mobile number for changes
     watch(() => form.mobile, (newMobile) => {
       if (newMobile && newMobile.length >= 10) {
         if (mobileCheckTimeout.value) {
@@ -827,11 +996,18 @@ export default {
 
     onMounted(async () => {
       try {
-        showLoader('Loading districts...')
+        showLoader('Loading data...')
+        
+        // Load districts
         districts.value = await getDistricts()
+        
+        // Load program countries
+        programCountries.value = await getProgramCountries()
+        console.log('✅ Loaded program countries:', programCountries.value.length)
+        
         hideLoader()
       } catch (error) {
-        console.error('Failed to load districts:', error)
+        console.error('Failed to load initial data:', error)
         hideLoader()
       }
 
@@ -893,18 +1069,6 @@ export default {
       }
     }
 
-    const nextStep = () => {
-      if (currentStep.value === 1) {
-        if (isMember.value === null) {
-          errors.memberStatus = 'Please select whether you are a member or not'
-          return
-        }
-        errors.memberStatus = ''
-      }
-
-      currentStep.value++
-    }
-
     const prevStep = () => {
       currentStep.value--
     }
@@ -931,11 +1095,10 @@ export default {
       let isValid = true
 
       if (isValid) {
-        nextStep()
+        currentStep.value++
       }
     }
 
-    // MODIFIED: Made async and added checkExistingOffer
     const validatePersonalInfoAndContinue = async () => {
       errors.name = ''
       errors.mobile = ''
@@ -972,7 +1135,6 @@ export default {
       }
 
       if (isValid) {
-        // NEW: Check for existing offer before continuing
         await checkExistingOffer()
         
         const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
@@ -982,11 +1144,10 @@ export default {
           mobile: fullMobile
         })
 
-        nextStep()
+        currentStep.value++
       }
     }
 
-    // MODIFIED: Updated to show appropriate message
     const submitOffer = async () => {
       errors.offerAmount = ''
       errors.installmentType = ''
@@ -1011,7 +1172,7 @@ export default {
       if (isValid) {
         try {
           isProcessing.value = true
-          showLoader(hasExistingOffer.value ? 'Updating your offer...' : 'Submitting your offer...')  // MODIFIED
+          showLoader(hasExistingOffer.value ? 'Updating your offer...' : 'Submitting your offer...')
 
           const fullMobile = formatMobileForDatabase(form.mobile, selectedMobileCountry.value)
           const fullWhatsApp = sameWhatsAppAsMobile.value
@@ -1030,7 +1191,11 @@ export default {
             customInstallments: form.installmentType === 'custom' ? form.customInstallments : null,
             completionYear: form.completionYear,
             completionMonth: form.completionMonth,
-            remark: form.remark
+            remark: form.remark,
+            // Add program data
+            hasProgram: hasProgram.value || false,
+            programCountryId: hasProgram.value ? form.programCountry : null,
+            programId: hasProgram.value ? form.program : null
           }
 
           if (isMember.value) {
@@ -1045,7 +1210,7 @@ export default {
           console.log('Submitting offer with data:', offerData);
 
           try {
-            const apiUrl = 'https://www.wisdom-home.cloudocz.com/api/offers/submit';
+            const apiUrl = `${API_BASE_URL}/offers/submit`;
             console.log('Making direct POST request to:', apiUrl);
 
             const apiResponse = await fetch(apiUrl, {
@@ -1072,7 +1237,11 @@ export default {
                 completion_year: offerData.completionYear || null,
                 completion_month: offerData.completionMonth || null,
                 paid_amount: 0,
-                remark: offerData.remark || ''
+                remark: offerData.remark || '',
+                // Add program fields
+                has_program: offerData.hasProgram,
+                program_country_id: offerData.programCountryId,
+                program_id: offerData.programId
               })
             });
 
@@ -1080,7 +1249,6 @@ export default {
               const responseData = await apiResponse.json();
               console.log('Direct API Response success:', responseData);
 
-              // NEW: Check if this was an update
               const wasUpdate = responseData.isUpdate || false
               const message = responseData.message || (wasUpdate ? '✅ Offer updated successfully!' : '✅ Offer submitted successfully!')
 
@@ -1088,7 +1256,7 @@ export default {
                 success: true,
                 offerId: responseData.offerId || 'OF-' + Date.now(),
                 date: responseData.date || new Date().toISOString(),
-                isUpdate: wasUpdate  // NEW
+                isUpdate: wasUpdate
               };
 
               const historyData = {
@@ -1109,8 +1277,8 @@ export default {
 
               isProcessing.value = false
               hideLoader()
-              alert(message)  // MODIFIED
-              nextStep()
+              alert(message)
+              currentStep.value++
 
             } else {
               console.error('API returned error status:', apiResponse.status);
@@ -1180,7 +1348,6 @@ export default {
       validateMobileNumber,
       onSameWhatsAppChange,
       getWhatsAppDisplay,
-      nextStep,
       prevStep,
       goBack,
       goHome,
@@ -1192,10 +1359,16 @@ export default {
       submitOffer,
       getInstallmentText,
       getMonthName,
-      // NEW: Added to return
       hasExistingOffer,
       existingOfferId,
-      checkExistingOffer
+      checkExistingOffer,
+      // Program-related items
+      hasProgram,
+      programCountries,
+      programs,
+      hasProgramCountries,
+      onProgramCountryChange,
+      validateMemberAndProgramStep  // NEW: Combined validation function
     }
   }
 }
