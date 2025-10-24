@@ -756,13 +756,8 @@ export default {
         isValid = false
       }
 
-      // Validate program status
-      if (hasProgram.value === null) {
-        errors.programStatus = 'Please select whether you are participating through a program'
-        isValid = false
-      }
-
-      // If program is selected, validate country and program
+      // Program selection is completely OPTIONAL
+      // Only validate if user has selected "Yes" for program
       if (hasProgram.value === true) {
         if (!form.programCountry) {
           errors.programCountry = 'Please select a program country'
@@ -775,6 +770,7 @@ export default {
         }
       }
 
+      // User can proceed without selecting program status (it's optional)
       if (isValid) {
         currentStep.value++
       }
