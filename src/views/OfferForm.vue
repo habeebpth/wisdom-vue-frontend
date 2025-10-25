@@ -254,22 +254,6 @@
           <!-- Step 3: Personal Info -->
           <div v-if="currentStep === 3">
             <h2 class="text-xl font-semibold text-gray-700 mb-4">Personal Information</h2>
-            <!-- Existing Offer Notification -->
-            <div v-if="hasExistingOffer" class="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-              <div class="flex items-start">
-                <div class="flex-shrink-0">
-                  <i class="fas fa-info-circle text-blue-400 text-xl"></i>
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-blue-800">✅ Existing Offer Found</h3>
-                  <div class="mt-1 text-sm text-blue-700">
-                    <p><strong>Offer ID:</strong> {{ existingOfferId }}</p>
-                    <p class="mt-1">Your form has been pre-filled with your existing offer details. You can modify and update them in the next step.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div class="space-y-4">
               <div>
                 <label for="name" class="form-label">പേര് (Name) <span class="text-red-500">*</span></label>
@@ -876,7 +860,7 @@ export default {
               hasExistingOffer.value = true
               existingOfferId.value = activeOffer.id
               
-              form.offerAmount = activeOffer.offerAmount
+              // form.offerAmount = activeOffer.offerAmount
               form.installmentType = activeOffer.installments?.toString() || ''
               
               if (activeOffer.completionDate && activeOffer.completionDate !== 'Not specified') {
@@ -898,18 +882,18 @@ export default {
               
               hideLoader()
               
-              alert(`✅ Welcome back!\n\n` +
-                    `📝 Your information has been loaded:\n` +
-                    `• Status: ${isMember.value ? 'Member' : 'Non-Member'}\n` +
-                    `• Existing Offer ID: ${activeOffer.id}\n` +
-                    `• Offer Amount: ₹${activeOffer.offerAmount}\n\n` +
-                    `You can review and update your details.`)
+              // alert(`✅ Welcome back!\n\n` +
+              //       `📝 Your information has been loaded:\n` +
+              //       `• Status: ${isMember.value ? 'Member' : 'Non-Member'}\n` +
+              //       `• Existing Offer ID: ${activeOffer.id}\n` +
+              //       `• Offer Amount: ₹${activeOffer.offerAmount}\n\n` +
+              //       `You can review and update your details.`)
             } else {
               hasExistingOffer.value = false
               existingOfferId.value = null
               hideLoader()
               
-              alert(`✅ Welcome back!\n\nYour profile has been loaded.\nYou can now create a new offer.`)
+              // alert(`✅ Welcome back!\n\nYour profile has been loaded.\nYou can now create a new offer.`)
             }
           } else {
             hasExistingOffer.value = false
