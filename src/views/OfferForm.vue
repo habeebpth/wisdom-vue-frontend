@@ -383,7 +383,7 @@
             <div class="space-y-6">
               <div>
                 <label for="offerAmount" class="form-label">ഒരു വർഷം കൊണ്ട് താങ്കളുടെ കുടുംബം നൽകാൻ ഉദ്ദേശിക്കുന്ന സംഖ്യ
-                  (ഓഫർ)
+                  (ഓഫർ) (Offer Amount In {{ form.currency }})
                   <span class="text-red-500">*</span></label>
                 <div class="mt-1 relative rounded-md shadow-sm">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -643,7 +643,9 @@ export default {
       customInstallments: null,
       completionYear: '',
       completionMonth: '',
-      remark: ''
+      remark: '',
+      currency: 'INR',
+      currencyRate: '1.00'
     })
 
     const errors = reactive({
@@ -717,11 +719,24 @@ export default {
         try {
           showLoader('Loading programs...')
           programs.value = await getPrograms(form.programCountry)
+          
+          // Update currency and currency rate based on selected program country
+          const selectedCountry = programCountries.value.find(c => c.id === form.programCountry)
+          if (selectedCountry) {
+            form.currency = selectedCountry.currency || 'INR'
+            form.currencyRate = selectedCountry.currency_rate || '1.00'
+            console.log('Updated currency:', form.currency, 'Rate:', form.currencyRate)
+          }
+          
           hideLoader()
         } catch (error) {
           console.error('Failed to load programs:', error)
           hideLoader()
         }
+      } else {
+        // Reset to default if no program country selected
+        form.currency = 'INR'
+        form.currencyRate = '1.00'
       }
     }
 
@@ -1175,7 +1190,10 @@ export default {
             // Add program data
             hasProgram: hasProgram.value || false,
             programCountryId: hasProgram.value ? form.programCountry : null,
-            programId: hasProgram.value ? form.program : null
+            programId: hasProgram.value ? form.program : null,
+            // Add currency data
+            currency: form.currency,
+            currencyRate: form.currencyRate
           }
 
           if (isMember.value) {
@@ -1221,7 +1239,10 @@ export default {
                 // Add program fields
                 has_program: offerData.hasProgram,
                 program_country_id: offerData.programCountryId,
-                program_id: offerData.programId
+                program_id: offerData.programId,
+                // Add currency fields
+                currency: offerData.currency,
+                currency_rate: offerData.currencyRate
               })
             });
 
