@@ -535,7 +535,7 @@
                   </div>
                   <div class="flex justify-between">
                     <span class="text-gray-600">Total Offer Amount:</span>
-                    <span class="font-medium">₹{{ form.offerAmount }}</span>
+                    <span class="font-medium">{{ form.offerAmount }} {{ form.currency }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span class="text-gray-600">Payment Schedule:</span>
