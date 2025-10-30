@@ -32,119 +32,64 @@
         <div class="p-6">
           <h1 class="text-2xl font-bold text-gray-800 mb-6">Offer Form</h1>
 
-          <!-- Step 1: Member Check & Program Check (COMBINED) -->
+          <!-- Step 1: Country & Place -->
           <div v-if="currentStep === 1">
-            <!-- Member Status -->
-            <div class="mb-8">
-              <h2 class="text-xl font-semibold text-gray-700 mb-4">നിങ്ങൾ വിസ്‌ഡം മെമ്പർ ആണോ ?</h2>
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">രാജ്യവും സ്ഥലവും / Country & Place</h2>
 
-              <div class="space-y-4">
-                <div class="flex items-center space-x-3">
-                  <input id="member-yes" v-model="isMember" type="radio" :value="true" name="member-status"
-                    class="h-5 w-5 text-green-600" />
-                  <label for="member-yes" class="text-lg">അതെ (Yes)</label>
-                </div>
-
-                <div class="flex items-center space-x-3">
-                  <input id="member-no" v-model="isMember" type="radio" :value="false" name="member-status"
-                    class="h-5 w-5 text-green-600" />
-                  <label for="member-no" class="text-lg">അല്ല (No)</label>
-                </div>
-              </div>
-
-              <div v-if="errors.memberStatus" class="text-red-600 mt-2">{{ errors.memberStatus }}</div>
-            </div>
-
-            <!-- Program Selection (NEW - Integrated in Step 1) -->
-            <div v-if="hasProgramCountries" class="border-t pt-6">
-              <h2 class="text-xl font-semibold text-gray-700 mb-4">
-                ഏതെങ്കിലും പ്രോഗ്രാം വഴിയാണോ താങ്കൾ ഓഫർ നൽകുന്നത് ?
-              </h2>
-
-              <div class="space-y-4">
-                <div class="flex items-center space-x-3">
-                  <input 
-                    id="program-yes" 
-                    v-model="hasProgram" 
-                    type="radio" 
-                    :value="true" 
-                    name="program-status"
-                    class="h-5 w-5 text-green-600" 
-                  />
-                  <label for="program-yes" class="text-lg">അതെ (Yes)</label>
-                </div>
-
-                <div class="flex items-center space-x-3">
-                  <input 
-                    id="program-no" 
-                    v-model="hasProgram" 
-                    type="radio" 
-                    :value="false" 
-                    name="program-status"
-                    class="h-5 w-5 text-green-600" 
-                  />
-                  <label for="program-no" class="text-lg">അല്ല (No)</label>
-                </div>
-              </div>
-
-              <div v-if="errors.programStatus" class="text-red-600 mt-2">
-                {{ errors.programStatus }}
-              </div>
-
-              <!-- Show program selection if user selects Yes -->
-              <div v-if="hasProgram === true" class="mt-6 space-y-4">
-                <div>
-                  <label for="program-country" class="form-label">
-                    പ്രോഗ്രാം നടക്കുന്ന രാജ്യം (Program Country) 
-                    <span class="text-red-500">*</span>
-                  </label>
-                  <select 
-                    id="program-country" 
-                    v-model="form.programCountry" 
-                    class="form-select" 
-                    @change="onProgramCountryChange"
+            <div class="space-y-6">
+              <!-- Program Country Selection -->
+              <div v-if="hasProgramCountries">
+                <label for="program-country" class="form-label">
+                  പ്രോഗ്രാം നടക്കുന്ന രാജ്യം / Program Country
+                  <span class="text-red-500">*</span>
+                </label>
+                <select 
+                  id="program-country" 
+                  v-model="form.programCountry" 
+                  class="form-select" 
+                  @change="onProgramCountryChange"
+                >
+                  <option value="" disabled>Select a program country</option>
+                  <option 
+                    v-for="country in programCountries" 
+                    :key="country.id" 
+                    :value="country.id"
                   >
-                    <option value="" disabled>Select a program country</option>
-                    <option 
-                      v-for="country in programCountries" 
-                      :key="country.id" 
-                      :value="country.id"
-                    >
-                      {{ country.name }}
-                    </option>
-                  </select>
-                  <p v-if="errors.programCountry" class="mt-1 text-sm text-red-600">
-                    {{ errors.programCountry }}
-                  </p>
-                </div>
+                    {{ country.name }}
+                  </option>
+                </select>
+                <p v-if="errors.programCountry" class="mt-1 text-sm text-red-600">
+                  {{ errors.programCountry }}
+                </p>
+              </div>
 
-                <div>
-                  <label for="program" class="form-label">
-                    പ്രോഗ്രാം (Program) 
-                    <span class="text-red-500">*</span>
-                  </label>
-                  <select 
-                    id="program" 
-                    v-model="form.program" 
-                    class="form-select" 
-                    :disabled="!form.programCountry"
+              <!-- Place/Program Selection -->
+              <div v-if="form.programCountry">
+                <label for="program" class="form-label">
+                  സ്ഥലം / Place
+                  <span class="text-red-500">*</span>
+                </label>
+                <select 
+                  id="program" 
+                  v-model="form.program" 
+                  class="form-select" 
+                  :disabled="!form.programCountry"
+                >
+                  <option value="" disabled>Select a place</option>
+                  <option 
+                    v-for="program in programs" 
+                    :key="program.id" 
+                    :value="program.id"
                   >
-                    <option value="" disabled>Select a program</option>
-                    <option 
-                      v-for="program in programs" 
-                      :key="program.id" 
-                      :value="program.id"
-                    >
-                      {{ program.name }}
-                    </option>
-                  </select>
-                  <p v-if="errors.program" class="mt-1 text-sm text-red-600">
-                    {{ errors.program }}
-                  </p>
-                  <p v-if="!form.programCountry" class="mt-1 text-sm text-gray-500">
-                    Please select a program country first
-                  </p>
-                </div>
+                    {{ program.name }}
+                  </option>
+                </select>
+                <p v-if="errors.program" class="mt-1 text-sm text-red-600">
+                  {{ errors.program }}
+                </p>
+                <p v-if="!form.programCountry" class="mt-1 text-sm text-gray-500">
+                  Please select a program country first
+                </p>
               </div>
             </div>
 
@@ -152,111 +97,18 @@
               <button @click="goBack" class="btn bg-gray-200 hover:bg-gray-300 text-gray-700">
                 Back
               </button>
-              <button @click="validateMemberAndProgramStep" class="btn btn-primary bg-green-600 hover:bg-green-700 text-white">
+              <button @click="validateCountryPlaceStep" class="btn btn-primary bg-green-600 hover:bg-green-700 text-white">
                 Continue
               </button>
             </div>
           </div>
 
-          <!-- Step 2: Location Details -->
+          <!-- Step 2: Personal Info -->
           <div v-if="currentStep === 2">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">{{ isMember ? 'Member Details' : 'Location Details' }}
-            </h2>
-
-            <div class="space-y-4">
-              <!-- For Members -->
-              <template v-if="isMember">
-                <div>
-                  <label for="district" class="form-label">ജില്ല (District) <span class="text-red-500">*</span></label>
-                  <select id="district" v-model="form.district" class="form-select" required @change="onDistrictChange">
-                    <option value="" disabled>Select a district</option>
-                    <option v-for="district in districts" :key="district.id" :value="district.id">
-                      {{ district.name }}
-                    </option>
-                  </select>
-                  <p v-if="errors.district" class="mt-1 text-sm text-red-600">{{ errors.district }}</p>
-                </div>
-
-                <div>
-                  <label for="zone" class="form-label">മണ്ഡലം (Zone) <span class="text-red-500">*</span></label>
-                  <select id="zone" v-model="form.zone" class="form-select" required @change="onZoneChange"
-                    :disabled="!form.district">
-                    <option value="" disabled>Select a zone</option>
-                    <option v-for="zone in zones" :key="zone.id" :value="zone.id">
-                      {{ zone.name }}
-                    </option>
-                  </select>
-                  <p v-if="errors.zone" class="mt-1 text-sm text-red-600">{{ errors.zone }}</p>
-                </div>
-
-                <div>
-                  <label for="unit" class="form-label">ശാഖ (Unit) <span class="text-red-500">*</span></label>
-                  <select id="unit" v-model="form.unit" class="form-select" required :disabled="!form.zone">
-                    <option value="" disabled>Select a unit</option>
-                    <option v-for="unit in units" :key="unit.id" :value="unit.id">
-                      {{ unit.name }}
-                    </option>
-                  </select>
-                  <p v-if="errors.unit" class="mt-1 text-sm text-red-600">{{ errors.unit }}</p>
-                </div>
-              </template>
-
-              <!-- For Non-Members -->
-              <template v-else>
-                <div>
-                  <label for="district" class="form-label">ജില്ല (District) <span
-                      class="text-gray-500"></span></label>
-                  <select id="district" v-model="form.district" class="form-select">
-                    <option value="">Select a district</option>
-                    <option v-for="district in keralaDistricts" :key="district.id" :value="district.id">
-                      {{ district.name }}
-                    </option>
-                  </select>
-                  <p v-if="errors.district" class="mt-1 text-sm text-red-600">{{ errors.district }}</p>
-                </div>
-
-                <div>
-                  <label for="taluk" class="form-label">താലൂക്ക് (Taluk) <span
-                      class="text-gray-500"></span></label>
-                  <input id="taluk" v-model="form.taluk" type="text" class="form-input"
-                    placeholder="Enter taluk name" />
-                  <p v-if="errors.taluk" class="mt-1 text-sm text-red-600">{{ errors.taluk }}</p>
-                </div>
-
-                <div>
-                  <label for="panchayath" class="form-label">പഞ്ചായത്ത് (Panchayath) <span
-                      class="text-gray-500"></span></label>
-                  <input id="panchayath" v-model="form.panchayath" type="text" class="form-input"
-                    placeholder="Enter panchayath name" />
-                  <p v-if="errors.panchayath" class="mt-1 text-sm text-red-600">{{ errors.panchayath }}</p>
-                </div>
-
-                <div>
-                  <label for="ward" class="form-label">വാർഡ് (Ward) <span
-                      class="text-gray-500"></span></label>
-                  <input id="ward" v-model="form.ward" type="text" class="form-input"
-                    placeholder="Enter ward number/name" />
-                </div>
-              </template>
-            </div>
-
-            <div class="flex justify-between mt-8">
-              <button @click="prevStep" class="btn bg-gray-200 hover:bg-gray-300 text-gray-700">
-                Back
-              </button>
-              <button @click="validateLocationAndContinue"
-                class="btn btn-primary bg-green-600 hover:bg-green-700 text-white">
-                Continue
-              </button>
-            </div>
-          </div>
-
-          <!-- Step 3: Personal Info -->
-          <div v-if="currentStep === 3">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Personal Information</h2>
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">വ്യക്തിഗത വിവരങ്ങൾ / Personal Information</h2>
             <div class="space-y-4">
               <div>
-                <label for="name" class="form-label">പേര് (Name) <span class="text-red-500">*</span></label>
+                <label for="name" class="form-label">പേര് / Name <span class="text-red-500">*</span></label>
                 <input id="name" v-model="form.name" type="text" class="form-input" required
                   placeholder="Enter your full name" />
                 <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
@@ -264,7 +116,7 @@
 
               <!-- Mobile Number with Country Code -->
               <div>
-                <label for="mobile" class="form-label">മൊബൈൽ (Mobile) <span class="text-red-500">*</span></label>
+                <label for="mobile" class="form-label">മൊബൈൽ / Mobile <span class="text-red-500">*</span></label>
                 <div class="flex">
                   <!-- Country Code Selector for Mobile -->
                   <div class="relative">
@@ -315,7 +167,7 @@
 
               <!-- WhatsApp Number with Country Code -->
               <div v-if="!sameWhatsAppAsMobile">
-                <label for="whatsapp" class="form-label">വാട്സ്ആപ്പ് (WhatsApp) <span
+                <label for="whatsapp" class="form-label">വാട്സ്ആപ്പ് / WhatsApp <span
                     class="text-red-500">*</span></label>
                 <div class="flex">
                   <!-- Country Code Selector for WhatsApp -->
@@ -358,7 +210,7 @@
               </div>
 
               <div>
-                <label for="email" class="form-label">Email <span class="text-gray-500"></span></label>
+                <label for="email" class="form-label">ഇമെയിൽ / Email <span class="text-gray-500"></span></label>
                 <input id="email" v-model="form.email" type="email" class="form-input"
                   placeholder="Enter your email address" />
                 <p v-if="errors.email" class="mt-1 text-sm text-red-600">{{ errors.email }}</p>
@@ -376,63 +228,88 @@
             </div>
           </div>
 
-          <!-- Step 4: Offer Details -->
-          <div v-if="currentStep === 4">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Offer Details</h2>
+          <!-- Step 3: Offer Details -->
+          <div v-if="currentStep === 3">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">ഓഫർ വിശദാംശങ്ങൾ / Offer Details</h2>
 
             <div class="space-y-6">
+              <!-- Currency Selector -->
               <div>
-                <label for="offerAmount" class="form-label">ഒരു വർഷം കൊണ്ട് താങ്കളുടെ കുടുംബം നൽകാൻ ഉദ്ദേശിക്കുന്ന സംഖ്യ
-                  (ഓഫർ) (Offer Amount In {{ form.currency }})
-                  <span class="text-red-500">*</span></label>
+                <label for="currency" class="form-label">
+                  കറൻസി / Currency <span class="text-red-500">*</span>
+                </label>
+                <select 
+                  id="currency" 
+                  v-model="form.currency" 
+                  class="form-select"
+                  @change="onCurrencyChange"
+                >
+                  <option value="" disabled>Select Currency</option>
+                  <option value="INR">INR (Indian Rupee)</option>
+                  <option 
+                    v-if="programCountryCurrency && programCountryCurrency !== 'INR'" 
+                    :value="programCountryCurrency"
+                  >
+                    {{ programCountryCurrency }} ({{ getProgramCountryName() }})
+                  </option>
+                </select>
+                <p v-if="errors.currency" class="mt-1 text-sm text-red-600">{{ errors.currency }}</p>
+              </div>
+
+              <div>
+                <label for="offerAmount" class="form-label">
+                  ഒരു വർഷം കൊണ്ട് താങ്കളുടെ കുടുംബം നൽകാൻ ഉദ്ദേശിക്കുന്ന സംഖ്യ (ഓഫർ) / Offer Amount in {{ form.currency || 'Currency' }}
+                  <span class="text-red-500">*</span>
+                </label>
                 <div class="mt-1 relative rounded-md shadow-sm">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="text-gray-500 sm:text-sm"></span>
+                    <span class="text-gray-500 sm:text-sm">{{ getCurrencySymbol() }}</span>
                   </div>
-                  <input id="offerAmount" v-model.number="form.offerAmount" type="number" class="form-input pl-8"
+                  <input id="offerAmount" v-model.number="form.offerAmount" type="number" class="form-input pl-12"
                     placeholder="Enter amount" min="1" />
                 </div>
                 <p v-if="errors.offerAmount" class="mt-1 text-sm text-red-600">{{ errors.offerAmount }}</p>
               </div>
 
               <div>
-                <label class="form-label block mb-2">നൽകുന്ന രൂപം (Payment Schedule) <span
-                    class="text-red-500">*</span></label>
+                <label class="form-label block mb-2">
+                  നൽകുന്ന രൂപം / Payment Schedule <span class="text-red-500">*</span>
+                </label>
                 <div class="space-y-3">
                   <div class="flex items-center">
                     <input id="installment-1" type="radio" v-model="form.installmentType" name="installment-type"
                       value="1" class="h-5 w-5 text-green-600" />
-                    <label for="installment-1" class="ml-3 text-gray-700">ഒന്നിച്ച് (One time)</label>
+                    <label for="installment-1" class="ml-3 text-gray-700">ഒന്നിച്ച് / One time</label>
                   </div>
 
                   <div class="flex items-center">
                     <input id="installment-2" type="radio" v-model="form.installmentType" name="installment-type"
                       value="2" class="h-5 w-5 text-green-600" />
-                    <label for="installment-2" class="ml-3 text-gray-700">2 തവണ (2 installments)</label>
+                    <label for="installment-2" class="ml-3 text-gray-700">2 തവണ / 2 installments</label>
                   </div>
 
                   <div class="flex items-center">
                     <input id="installment-3" type="radio" v-model="form.installmentType" name="installment-type"
                       value="3" class="h-5 w-5 text-green-600" />
-                    <label for="installment-3" class="ml-3 text-gray-700">3 തവണ (3 installments)</label>
+                    <label for="installment-3" class="ml-3 text-gray-700">3 തവണ / 3 installments</label>
                   </div>
 
                   <div class="flex items-center">
                     <input id="installment-4" type="radio" v-model="form.installmentType" name="installment-type"
                       value="4" class="h-5 w-5 text-green-600" />
-                    <label for="installment-4" class="ml-3 text-gray-700">4 തവണ (4 installments)</label>
+                    <label for="installment-4" class="ml-3 text-gray-700">4 തവണ / 4 installments</label>
                   </div>
 
                   <div class="flex items-center">
                     <input id="installment-5" type="radio" v-model="form.installmentType" name="installment-type"
                       value="5" class="h-5 w-5 text-green-600" />
-                    <label for="installment-5" class="ml-3 text-gray-700">5 തവണ (5 installments)</label>
+                    <label for="installment-5" class="ml-3 text-gray-700">5 തവണ / 5 installments</label>
                   </div>
 
                   <div class="flex items-center">
                     <input id="installment-6" type="radio" v-model="form.installmentType" name="installment-type"
                       value="6" class="h-5 w-5 text-green-600" />
-                    <label for="installment-6" class="ml-3 text-gray-700">6 തവണ (6 installments)</label>
+                    <label for="installment-6" class="ml-3 text-gray-700">6 തവണ / 6 installments</label>
                   </div>
 
                   <div class="flex items-center">
@@ -441,7 +318,7 @@
                     <label for="installment-custom" class="ml-3 text-gray-700"></label>
                     <input v-model.number="form.customInstallments" type="number" min="1" class="ml-2 form-input w-20"
                       :disabled="form.installmentType !== 'custom'" />
-                    <span class="ml-2">തവണ</span>
+                    <span class="ml-2">തവണ / installments</span>
                   </div>
                 </div>
                 <p v-if="errors.installmentType" class="mt-1 text-sm text-red-600">{{ errors.installmentType }}</p>
@@ -449,8 +326,9 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="form-label">പൂർത്തിയാക്കുന്ന വർഷം (Completion Year) <span
-                      class="text-gray-500"></span></label>
+                  <label class="form-label">
+                    പൂർത്തിയാക്കുന്ന വർഷം / Completion Year <span class="text-gray-500"></span>
+                  </label>
                   <select v-model="form.completionYear" class="form-select">
                     <option value="">Select Year</option>
                     <option value="2025">2025</option>
@@ -459,28 +337,31 @@
                 </div>
 
                 <div>
-                  <label class="form-label">പൂർത്തിയാക്കുന്ന മാസം (Completion Month) <span
-                      class="text-gray-500"></span></label>
+                  <label class="form-label">
+                    പൂർത്തിയാക്കുന്ന മാസം / Completion Month <span class="text-gray-500"></span>
+                  </label>
                   <select v-model="form.completionMonth" class="form-select">
                     <option value="">Select Month</option>
-                    <option value="1">ജനുവരി (January)</option>
-                    <option value="2">ഫെബ്രുവരി (February)</option>
-                    <option value="3">മാർച്ച് (March)</option>
-                    <option value="4">ഏപ്രിൽ (April)</option>
-                    <option value="5">മേയ് (May)</option>
-                    <option value="6">ജൂൺ (June)</option>
-                    <option value="7">ജൂലൈ (July)</option>
-                    <option value="8">ഓഗസ്റ്റ് (August)</option>
-                    <option value="9">സെപ്റ്റംബർ (September)</option>
-                    <option value="10">ഒക്‌ടോബർ (October)</option>
-                    <option value="11">നവംബർ (November)</option>
-                    <option value="12">ഡിസംബർ (December)</option>
+                    <option value="1">ജനുവരി / January</option>
+                    <option value="2">ഫെബ്രുവരി / February</option>
+                    <option value="3">മാർച്ച് / March</option>
+                    <option value="4">ഏപ്രിൽ / April</option>
+                    <option value="5">മേയ് / May</option>
+                    <option value="6">ജൂൺ / June</option>
+                    <option value="7">ജൂലൈ / July</option>
+                    <option value="8">ഓഗസ്റ്റ് / August</option>
+                    <option value="9">സെപ്റ്റംബർ / September</option>
+                    <option value="10">ഒക്‌ടോബർ / October</option>
+                    <option value="11">നവംബർ / November</option>
+                    <option value="12">ഡിസംബർ / December</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label for="remark" class="form-label">കുറിപ്പ് (Remark) <span class="text-gray-500"></span></label>
+                <label for="remark" class="form-label">
+                  കുറിപ്പ് / Remark <span class="text-gray-500"></span>
+                </label>
                 <textarea id="remark" v-model="form.remark" rows="3" class="form-input" 
                   placeholder="Enter any additional remarks or notes (optional)" 
                   maxlength="1000"></textarea>
@@ -507,8 +388,8 @@
             </div>
           </div>
 
-          <!-- Step 5: Success/Confirmation -->
-          <div v-if="currentStep === 5">
+          <!-- Step 4: Success/Confirmation -->
+          <div v-if="currentStep === 4">
             <div class="text-center py-8">
               <div class="text-green-600 text-6xl mb-4">
                 <i class="fas fa-check-circle"></i>
@@ -535,7 +416,7 @@
                   </div>
                   <div class="flex justify-between">
                     <span class="text-gray-600">Total Offer Amount:</span>
-                    <span class="font-medium">{{ form.offerAmount }} {{ form.currency }}</span>
+                    <span class="font-medium">{{ getCurrencySymbol() }}{{ form.offerAmount }} {{ form.currency }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span class="text-gray-600">Payment Schedule:</span>
@@ -601,29 +482,11 @@ export default {
     const mobileCountrySearch = ref('')
     const whatsappCountrySearch = ref('')
 
-    // UPDATED: Removed 'Program' as separate step
-    const steps = ['Member', 'Location', 'Personal', 'Offer', 'Confirmation']
+    // UPDATED: Step names changed
+    const steps = ['Country & Place', 'Personal', 'Offer', 'Confirmation']
 
     const selectedMobileCountry = ref(getDefaultCountry())
     const selectedWhatsAppCountry = ref(getDefaultCountry())
-
-    const keralaDistricts = ref([
-      { id: 'alappuzha', name: 'Alappuzha' },
-      { id: 'ernakulam', name: 'Ernakulam' },
-      { id: 'idukki', name: 'Idukki' },
-      { id: 'kannur', name: 'Kannur' },
-      { id: 'kasaragod', name: 'Kasaragod' },
-      { id: 'kollam', name: 'Kollam' },
-      { id: 'kottayam', name: 'Kottayam' },
-      { id: 'kozhikode', name: 'Kozhikode' },
-      { id: 'malappuram', name: 'Malappuram' },
-      { id: 'palakkad', name: 'Palakkad' },
-      { id: 'pathanamthitta', name: 'Pathanamthitta' },
-      { id: 'thiruvananthapuram', name: 'Thiruvananthapuram' },
-      { id: 'thrissur', name: 'Thrissur' },
-      { id: 'wayanad', name: 'Wayanad' },
-      { id: 'other', name: 'Other' }
-    ])
 
     const form = reactive({
       district: '',
@@ -666,7 +529,8 @@ export default {
       installmentType: '',
       completionYear: '',
       completionMonth: '',
-      remark: ''
+      remark: '',
+      currency: ''
     })
 
     const districts = ref([])
@@ -684,6 +548,15 @@ export default {
     // Check if there are any program countries available
     const hasProgramCountries = computed(() => {
       return programCountries.value && programCountries.value.length > 0
+    })
+
+    // Computed property for program country currency
+    const programCountryCurrency = computed(() => {
+      if (form.programCountry) {
+        const selectedCountry = programCountries.value.find(c => c.id === form.programCountry)
+        return selectedCountry?.currency || 'INR'
+      }
+      return 'INR'
     })
 
     // Get API base URL from environment
@@ -710,6 +583,44 @@ export default {
       }
     }
 
+    // Get program country name
+    const getProgramCountryName = () => {
+      if (form.programCountry) {
+        const selectedCountry = programCountries.value.find(c => c.id === form.programCountry)
+        return selectedCountry?.name || ''
+      }
+      return ''
+    }
+
+    // Get currency symbol
+    const getCurrencySymbol = () => {
+      const symbols = {
+        'INR': '₹',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'AED': 'د.إ',
+        'SAR': '﷼',
+        'QAR': 'ر.ق',
+        'KWD': 'د.ك',
+        'OMR': 'ر.ع.',
+        'BHD': 'د.ب'
+      }
+      return symbols[form.currency] || form.currency
+    }
+
+    // Currency change handler
+    const onCurrencyChange = () => {
+      // Update currency rate based on selected currency
+      if (form.currency === 'INR') {
+        form.currencyRate = '1.00'
+      } else if (form.currency === programCountryCurrency.value) {
+        const selectedCountry = programCountries.value.find(c => c.id === form.programCountry)
+        form.currencyRate = selectedCountry?.currency_rate || '1.00'
+      }
+      console.log('Currency changed to:', form.currency, 'Rate:', form.currencyRate)
+    }
+
     // Program country change handler
     const onProgramCountryChange = async () => {
       form.program = ''
@@ -720,7 +631,7 @@ export default {
           showLoader('Loading programs...')
           programs.value = await getPrograms(form.programCountry)
           
-          // Update currency and currency rate based on selected program country
+          // Update currency to program country's currency by default
           const selectedCountry = programCountries.value.find(c => c.id === form.programCountry)
           if (selectedCountry) {
             form.currency = selectedCountry.currency || 'INR'
@@ -740,36 +651,23 @@ export default {
       }
     }
 
-    // NEW: Combined validation for member and program in Step 1
-    const validateMemberAndProgramStep = () => {
-      errors.memberStatus = ''
-      errors.programStatus = ''
+    // NEW: Validate Country & Place step
+    const validateCountryPlaceStep = () => {
       errors.programCountry = ''
       errors.program = ''
 
       let isValid = true
 
-      // Validate member status
-      if (isMember.value === null) {
-        errors.memberStatus = 'Please select whether you are a member or not'
+      if (!form.programCountry) {
+        errors.programCountry = 'Please select a program country'
+        isValid = false
+      }
+      
+      if (!form.program) {
+        errors.program = 'Please select a place'
         isValid = false
       }
 
-      // Program selection is completely OPTIONAL
-      // Only validate if user has selected "Yes" for program
-      if (hasProgram.value === true) {
-        if (!form.programCountry) {
-          errors.programCountry = 'Please select a program country'
-          isValid = false
-        }
-        
-        if (!form.program) {
-          errors.program = 'Please select a program'
-          isValid = false
-        }
-      }
-
-      // User can proceed without selecting program status (it's optional)
       if (isValid) {
         currentStep.value++
       }
@@ -801,64 +699,6 @@ export default {
           console.log('User found:', response.data.user)
           const userData = response.data.user
           
-          // Pre-populate member status
-          if (userData.is_member !== null && userData.is_member !== undefined) {
-            isMember.value = userData.is_member === 1
-            console.log('✅ Pre-filled member status:', isMember.value)
-          }
-          
-          // Pre-populate location details
-          if (userData.is_member === 1) {
-            if (userData.district_id) {
-              form.district = userData.district_id
-              console.log('✅ Pre-filled district:', userData.district_id)
-              
-              try {
-                zones.value = await getZones(userData.district_id)
-                console.log('✅ Loaded zones for district')
-                
-                if (userData.zone_id) {
-                  form.zone = userData.zone_id
-                  console.log('✅ Pre-filled zone:', userData.zone_id)
-                  
-                  try {
-                    units.value = await getUnits(userData.zone_id)
-                    console.log('✅ Loaded units for zone')
-                    
-                    if (userData.unit_id) {
-                      form.unit = userData.unit_id
-                      console.log('✅ Pre-filled unit:', userData.unit_id)
-                    }
-                  } catch (error) {
-                    console.error('Failed to load units:', error)
-                  }
-                }
-              } catch (error) {
-                console.error('Failed to load zones:', error)
-              }
-            }
-          } else if (userData.is_member === 0) {
-            if (userData.district_id) {
-              form.district = userData.district_id
-              console.log('✅ Pre-filled district:', userData.district_id)
-            }
-            
-            if (userData.taluk) {
-              form.taluk = userData.taluk
-              console.log('✅ Pre-filled taluk:', userData.taluk)
-            }
-            
-            if (userData.panchayath) {
-              form.panchayath = userData.panchayath
-              console.log('✅ Pre-filled panchayath:', userData.panchayath)
-            }
-            
-            if (userData.ward) {
-              form.ward = userData.ward
-              console.log('✅ Pre-filled ward:', userData.ward)
-            }
-          }
-          
           // Pre-populate personal info
           form.name = userData.name || form.name
           form.email = userData.email || form.email
@@ -875,7 +715,6 @@ export default {
               hasExistingOffer.value = true
               existingOfferId.value = activeOffer.id
               
-              // form.offerAmount = activeOffer.offerAmount
               form.installmentType = activeOffer.installments?.toString() || ''
               
               if (activeOffer.completionDate && activeOffer.completionDate !== 'Not specified') {
@@ -896,19 +735,12 @@ export default {
               console.log('✅ Pre-filled offer details')
               
               hideLoader()
-              
-              // alert(`✅ Welcome back!\n\n` +
-              //       `📝 Your information has been loaded:\n` +
-              //       `• Status: ${isMember.value ? 'Member' : 'Non-Member'}\n` +
-              //       `• Existing Offer ID: ${activeOffer.id}\n` +
-              //       `• Offer Amount: ₹${activeOffer.offerAmount}\n\n` +
-              //       `You can review and update your details.`)
             } else {
               hasExistingOffer.value = false
               existingOfferId.value = null
               hideLoader()
               
-              // alert(`✅ Welcome back!\n\nYour profile has been loaded.\nYou can now create a new offer.`)
+              alert(`✅ Welcome back!\n\nYour profile has been loaded.\nYou can now create a new offer.`)
             }
           } else {
             hasExistingOffer.value = false
@@ -1080,20 +912,6 @@ export default {
       router.push('/payment-history')
     }
 
-    const validateLocationAndContinue = () => {
-      errors.district = ''
-      errors.zone = ''
-      errors.unit = ''
-      errors.taluk = ''
-      errors.panchayath = ''
-
-      let isValid = true
-
-      if (isValid) {
-        currentStep.value++
-      }
-    }
-
     const validatePersonalInfoAndContinue = async () => {
       errors.name = ''
       errors.mobile = ''
@@ -1148,8 +966,14 @@ export default {
       errors.installmentType = ''
       errors.completionYear = ''
       errors.completionMonth = ''
+      errors.currency = ''
 
       let isValid = true
+
+      if (!form.currency) {
+        errors.currency = 'Please select a currency'
+        isValid = false
+      }
 
       if (!form.offerAmount || form.offerAmount <= 0) {
         errors.offerAmount = 'Please enter a valid offer amount'
@@ -1179,8 +1003,6 @@ export default {
             mobile: fullMobile,
             whatsapp: fullWhatsApp,
             email: form.email,
-            isMember: isMember.value,
-            district: form.district,
             offerAmount: form.offerAmount,
             installmentType: form.installmentType,
             customInstallments: form.installmentType === 'custom' ? form.customInstallments : null,
@@ -1188,21 +1010,11 @@ export default {
             completionMonth: form.completionMonth,
             remark: form.remark,
             // Add program data
-            hasProgram: hasProgram.value || false,
-            programCountryId: hasProgram.value ? form.programCountry : null,
-            programId: hasProgram.value ? form.program : null,
+            programCountryId: form.programCountry,
+            programId: form.program,
             // Add currency data
             currency: form.currency,
             currencyRate: form.currencyRate
-          }
-
-          if (isMember.value) {
-            offerData.zone = form.zone;
-            offerData.unit = form.unit;
-          } else {
-            offerData.taluk = form.taluk;
-            offerData.panchayath = form.panchayath;
-            offerData.ward = form.ward;
           }
 
           console.log('Submitting offer with data:', offerData);
@@ -1222,13 +1034,13 @@ export default {
                 mobile: offerData.mobile,
                 whatsapp: offerData.whatsapp,
                 email: offerData.email || '',
-                is_member: offerData.isMember ? 1 : 0,
-                district_id: offerData.district || null,
-                zone_id: offerData.zone || null,
-                unit_id: offerData.unit || null,
-                taluk: offerData.taluk || '',
-                panchayath: offerData.panchayath || '',
-                ward: offerData.ward || '',
+                is_member: 0, // Default to non-member since we removed member step
+                district_id: null,
+                zone_id: null,
+                unit_id: null,
+                taluk: '',
+                panchayath: '',
+                ward: '',
                 amount: parseFloat(offerData.offerAmount),
                 installment_type: offerData.installmentType,
                 custom_installments: offerData.customInstallments || null,
@@ -1237,7 +1049,7 @@ export default {
                 paid_amount: 0,
                 remark: offerData.remark || '',
                 // Add program fields
-                has_program: offerData.hasProgram,
+                has_program: true,
                 program_country_id: offerData.programCountryId,
                 program_id: offerData.programId,
                 // Add currency fields
@@ -1333,7 +1145,6 @@ export default {
       districts,
       zones,
       units,
-      keralaDistricts,
       isProcessing,
       sameWhatsAppAsMobile,
       selectedMobileCountry,
@@ -1355,7 +1166,6 @@ export default {
       viewHistory,
       onDistrictChange,
       onZoneChange,
-      validateLocationAndContinue,
       validatePersonalInfoAndContinue,
       submitOffer,
       getInstallmentText,
@@ -1369,7 +1179,12 @@ export default {
       programs,
       hasProgramCountries,
       onProgramCountryChange,
-      validateMemberAndProgramStep  // NEW: Combined validation function
+      validateCountryPlaceStep,
+      // Currency-related items
+      programCountryCurrency,
+      getCurrencySymbol,
+      getProgramCountryName,
+      onCurrencyChange
     }
   }
 }
