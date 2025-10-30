@@ -263,10 +263,10 @@
                 </label>
                 <div class="mt-1 relative rounded-md shadow-sm">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="text-gray-500 sm:text-sm">{{ getCurrencySymbol() }}</span>
+                    <span class="text-gray-500 sm:text-sm"></span>
                   </div>
                   <input id="offerAmount" v-model.number="form.offerAmount" type="number" class="form-input pl-12"
-                    placeholder="Enter amount" min="1" />
+                    placeholder="Enter amount"  min="1" />
                 </div>
                 <p v-if="errors.offerAmount" class="mt-1 text-sm text-red-600">{{ errors.offerAmount }}</p>
               </div>
