@@ -82,7 +82,7 @@
             </div>
             <div class="stat-content">
               <p class="stat-label">Remaining Amount</p>
-              <p class="stat-value">₹{{ formatAmount(userStats.statistics.remaining_amount) }}</p>
+              <p class="stat-value">₹{{ formatAmount(Math.max(0, Number(userStats.statistics.remaining_amount) || 0)) }}</p>
             </div>
           </div>
 
