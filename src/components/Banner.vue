@@ -47,57 +47,98 @@
       </div>
     </div>
 
-    <!-- User Statistics Dashboard -->
-    <div v-if="showUserStats && userStats" class="user-stats-section">
-      <div class="stats-container">
-        <div class="stats-header">
-          <h2 class="stats-title">Your Status</h2>
-          <p class="stats-subtitle">{{ userStats.user.name }}</p>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon donations">
-              <i class="fas fa-hand-holding-heart"></i>
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Total Donations</p>
-              <p class="stat-value">{{ userStats.statistics.total_donations }}</p>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon amount">
-              <i class="fas fa-rupee-sign"></i>
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Donated Amount</p>
-              <p class="stat-value">₹{{ formatAmount(userStats.statistics.total_donated_amount) }}</p>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon offers">
-              <i class="fas fa-hourglass-half"></i>
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Remaining Amount</p>
-              <p class="stat-value">₹{{ formatAmount(Math.max(0, Number(userStats.statistics.remaining_amount) || 0)) }}</p>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon offer-amount">
-              <i class="fas fa-coins"></i>
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Offer Amount</p>
-              <p class="stat-value">₹{{ formatAmount(userStats.statistics.total_offer_amount) }}</p>
-            </div>
-          </div>
+    <!-- User Contribution Summary -->
+    <section v-if="statsLoading && !userStats" class="contrib-card contrib-skeleton" aria-busy="true" aria-label="Loading your contribution">
+      <div class="sk-row">
+        <div class="sk sk-avatar"></div>
+        <div class="sk-col">
+          <div class="sk sk-line short"></div>
+          <div class="sk sk-line"></div>
         </div>
       </div>
-    </div>
+      <div class="sk sk-block"></div>
+      <div class="sk-tiles">
+        <div class="sk sk-tile"></div>
+        <div class="sk sk-tile"></div>
+        <div class="sk sk-tile"></div>
+      </div>
+    </section>
+
+    <section v-else-if="showUserStats && summary" class="contrib-card" aria-labelledby="contrib-title">
+      <header class="contrib-head">
+        <div class="contrib-avatar" aria-hidden="true">{{ summary.initials }}</div>
+        <div class="contrib-who">
+          <p class="contrib-eyebrow" id="contrib-title">Your contribution</p>
+          <h2 class="contrib-name">{{ summary.name }}</h2>
+        </div>
+        <router-link to="/payment-history" class="contrib-history">
+          History <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </router-link>
+      </header>
+
+      <!-- Offer progress -->
+      <div v-if="summary.offered > 0" class="pledge">
+        <div class="pledge-top">
+          <div>
+            <p class="pledge-label">Paid so far</p>
+            <p class="pledge-paid">
+              ₹{{ formatAmount(summary.paid) }}
+              <span class="pledge-of">of ₹{{ formatAmount(summary.offered) }}</span>
+            </p>
+          </div>
+          <span :class="['pledge-pct', { done: summary.completed }]">{{ summary.percent }}%</span>
+        </div>
+
+        <div
+          class="pledge-bar"
+          role="progressbar"
+          :aria-valuenow="summary.percent"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-label="`${summary.percent}% of your offer paid`"
+        >
+          <div class="pledge-fill" :style="{ width: summary.percent + '%' }"></div>
+        </div>
+
+        <p v-if="summary.completed" class="pledge-note done">
+          <i class="fas fa-circle-check" aria-hidden="true"></i>
+          Your offer is fully paid. Thank you!
+        </p>
+        <p v-else class="pledge-note">
+          <strong>₹{{ formatAmount(summary.remaining) }}</strong> left to complete your offer
+        </p>
+      </div>
+
+      <!-- No offer yet -->
+      <div v-else class="pledge">
+        <p class="pledge-label">Total donated</p>
+        <p class="pledge-paid">₹{{ formatAmount(summary.paid) }}</p>
+        <div class="pledge-nudge">
+          <span class="pledge-nudge-text">
+            <i class="fas fa-hand-holding-heart" aria-hidden="true"></i>
+            No offer made yet
+          </span>
+          <router-link to="/offer" class="pledge-nudge-cta">
+            Make an offer <i class="fas fa-chevron-right" aria-hidden="true"></i>
+          </router-link>
+        </div>
+      </div>
+
+      <dl class="contrib-metrics">
+        <div class="metric">
+          <dt><i class="fas fa-receipt" aria-hidden="true"></i> Donations</dt>
+          <dd>{{ summary.donationCount }}</dd>
+        </div>
+        <div class="metric">
+          <dt><i class="fas fa-coins" aria-hidden="true"></i> Offered</dt>
+          <dd>₹{{ formatAmount(summary.offered) }}</dd>
+        </div>
+        <div :class="['metric', { 'metric-due': summary.remaining > 0 }]">
+          <dt><i class="fas fa-hourglass-half" aria-hidden="true"></i> Balance</dt>
+          <dd>₹{{ formatAmount(summary.remaining) }}</dd>
+        </div>
+      </dl>
+    </section>
 
     <!-- About Wisdom House Section -->
     <div class="about-section">
@@ -114,8 +155,9 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, watch, inject } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 import { getUserInfo } from '@/utils/localStorage'
 import { getUserByMobile } from '@/utils/api'
 
@@ -123,12 +165,15 @@ export default {
   name: 'ResponsiveBanner',
   setup() {
     const store = useStore()
+    const router = useRouter()
     const currentSlide = ref(0)
     const autoSlideInterval = ref(null)
 
     // User statistics
     const showUserStats = ref(false)
     const userStats = ref(null)
+    const statsLoading = ref(false)
+    let statsRequestId = 0
 
     const slides = ref([
       {
@@ -186,76 +231,95 @@ export default {
     const handleSlideClick = (slide) => {
       // Handle slide click based on action
       if (slide.action === 'donate') {
-        this.$router.push('/donate')
+        router.push('/donate')
       } else if (slide.action === 'offer') {
-        this.$router.push('/offer')
+        router.push('/offer')
       } else if (slide.action === 'history') {
-        this.$router.push('/history')
+        router.push('/payment-history')
       }
     }
 
     // Format amount with commas
     const formatAmount = (amount) => {
       if (!amount) return '0'
-      return new Intl.NumberFormat('en-IN').format(amount)
+      return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(amount)
     }
 
-    // Fetch user statistics
-    const fetchUserStats = async () => {
+    // Derived, display-ready numbers for the contribution card
+    const summary = computed(() => {
+      if (!userStats.value) return null
+      const stats = userStats.value.statistics || {}
+      const name = (userStats.value.user && userStats.value.user.name) || store.state.user.name || ''
+      const paid = Number(stats.total_donated_amount) || 0
+      const offered = Number(stats.total_offer_amount) || 0
+      const remaining = Math.max(0, offered - paid)
+      const percent = offered > 0 ? Math.min(100, Math.round((paid / offered) * 100)) : 0
+      const initials = name
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map(part => part.charAt(0).toUpperCase())
+        .join('') || '?'
+
+      return {
+        name,
+        initials,
+        paid,
+        offered,
+        remaining,
+        percent,
+        completed: offered > 0 && paid >= offered,
+        donationCount: Number(stats.total_donations) || 0
+      }
+    })
+
+    // Fetch user statistics for the given mobile ("+91-9876543210" format)
+    const fetchUserStats = async (mobile) => {
+      const requestId = ++statsRequestId
+
+      if (!mobile) {
+        showUserStats.value = false
+        userStats.value = null
+        statsLoading.value = false
+        return
+      }
+
+      statsLoading.value = true
       try {
-        const userInfo = getUserInfo()
+        const response = await getUserByMobile(mobile)
+        // Ignore responses that arrive after a newer request (e.g. user changed number)
+        if (requestId !== statsRequestId) return
 
-        if (userInfo && userInfo.mobile) {
-          console.log('User info found, fetching statistics...')
-
-          const response = await getUserByMobile(userInfo.mobile)
-
-          if (response && response.success && response.found) {
-            // Calculate remaining amount using donated amount
-            const totalOfferAmount = response.statistics.total_offer_amount || 0
-            const totalDonatedAmount = response.statistics.total_donated_amount || 0
-            response.statistics.remaining_amount = totalOfferAmount - totalDonatedAmount
-
-            userStats.value = response
-            showUserStats.value = true
-            console.log('User statistics loaded:', userStats.value)
-          } else {
-            console.log('No user data found for mobile:', userInfo.mobile)
-            showUserStats.value = false
-          }
+        if (response && response.success && response.found) {
+          userStats.value = response
+          showUserStats.value = true
         } else {
-          console.log('No mobile number found in user info')
+          userStats.value = null
           showUserStats.value = false
         }
       } catch (error) {
+        if (requestId !== statsRequestId) return
         console.error('Error fetching user statistics:', error)
+        userStats.value = null
         showUserStats.value = false
+      } finally {
+        if (requestId === statsRequestId) statsLoading.value = false
       }
     }
 
-    // Watch for changes in userInfo from store
+    // The store is the source of truth for the logged-in user. It is populated
+    // either from localStorage on app start or by UserInfoModal on first login,
+    // so watching it covers both cases without needing a page refresh.
+    // Fall back to localStorage in case this component mounts before App.vue
+    // has hydrated the store.
     watch(
-      () => store.state.user.userInfo,
-      (newUserInfo, oldUserInfo) => {
-        // Only fetch if userInfo changed and has mobile
-        if (newUserInfo && newUserInfo.mobile) {
-          // Check if mobile actually changed
-          if (!oldUserInfo || oldUserInfo.mobile !== newUserInfo.mobile) {
-            console.log('User info changed, fetching statistics...')
-            fetchUserStats()
-          }
-        } else if (!newUserInfo) {
-          // User info cleared
-          showUserStats.value = false
-          userStats.value = null
-        }
-      },
-      { deep: true }
+      () => store.state.user.mobile || (getUserInfo() || {}).mobile || '',
+      (mobile) => fetchUserStats(mobile),
+      { immediate: true }
     )
 
     onMounted(() => {
       startAutoSlide()
-      fetchUserStats()
     })
 
     onUnmounted(() => {
@@ -269,6 +333,8 @@ export default {
       handleSlideClick,
       showUserStats,
       userStats,
+      statsLoading,
+      summary,
       formatAmount
     }
   }
@@ -728,108 +794,384 @@ export default {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* User Statistics Section */
-.user-stats-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  margin: 1rem 1rem 2rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-  overflow: hidden;
-  animation: slideInUp 0.8s ease-out both;
+/* ---------- Contribution Card ---------- */
+.contrib-card {
+  --c-ink: #1f2937;
+  --c-muted: #6b7280;
+  --c-line: #e8ecf1;
+  --c-soft: #f6f8fb;
+  --c-brand: #2f6fb6;
+  --c-brand-soft: #e8f1fb;
+  --c-good: #1f9d55;
+  --c-good-soft: #e6f6ed;
+  --c-due: #b45309;
+  --c-due-soft: #fdf3e4;
+
+  background: #fff;
+  margin: 1rem 1rem 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--c-line);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 20px rgba(16, 24, 40, 0.06);
+  color: var(--c-ink);
+  animation: slideInUp 0.5s ease-out both;
 }
 
-.stats-container {
-  padding: 2rem 1.5rem;
-}
-
-.stats-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: white;
-}
-
-.stats-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.stats-subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-  font-weight: 500;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-.stat-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 1.25rem 1rem;
+/* Header */
+.contrib-head {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.125rem;
 }
 
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-}
-
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.contrib-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--c-brand-soft);
+  color: var(--c-brand);
+  font-weight: 600;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
   flex-shrink: 0;
-  color: white;
+  letter-spacing: 0.02em;
 }
 
-.stat-icon.donations {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stat-icon.amount {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-icon.offers {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.stat-icon.offer-amount {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.stat-content {
+.contrib-who {
   flex: 1;
   min-width: 0;
 }
 
-.stat-label {
+.contrib-eyebrow {
+  margin: 0;
   font-size: 0.75rem;
-  color: #6b7280;
-  margin: 0 0 0.25rem 0;
+  font-weight: 500;
+  color: var(--c-muted);
+  letter-spacing: 0.02em;
+}
+
+.contrib-name {
+  margin: 0.125rem 0 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.contrib-history {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  background: var(--c-soft);
+  color: var(--c-brand);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.contrib-history i {
+  font-size: 0.65rem;
+}
+
+.contrib-history:hover {
+  background: var(--c-brand-soft);
+}
+
+/* Offer progress */
+.pledge {
+  background: var(--c-soft);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.pledge-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pledge-label {
+  margin: 0 0 0.125rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--c-muted);
+}
+
+.pledge-paid {
+  margin: 0;
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+
+.pledge-of {
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--c-muted);
+}
+
+.pledge-pct {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: var(--c-brand-soft);
+  color: var(--c-brand);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pledge-pct.done {
+  background: var(--c-good-soft);
+  color: var(--c-good);
+}
+
+.pledge-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #e3e8ef;
+  overflow: hidden;
+}
+
+.pledge-fill {
+  height: 100%;
+  min-width: 6px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3aa86b 0%, var(--c-good) 100%);
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pledge-note {
+  margin: 0.625rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+}
+
+.pledge-note strong {
+  color: var(--c-ink);
+  font-weight: 600;
+}
+
+.pledge-note.done {
+  color: var(--c-good);
   font-weight: 500;
 }
 
-.stat-value {
-  font-size: 1.25rem;
+/* No offer yet */
+.pledge-nudge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #d8dee6;
+}
+
+.pledge-nudge-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+}
+
+.pledge-nudge-text i {
+  color: var(--c-good);
+}
+
+.pledge-nudge-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.75rem;
+  border-radius: 999px;
+  background: var(--c-good);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pledge-nudge-cta i {
+  font-size: 0.625rem;
+}
+
+/* Metrics row */
+.contrib-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.metric {
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  padding: 0.625rem 0.75rem;
+  min-width: 0;
+}
+
+.metric dt {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--c-muted);
+  white-space: nowrap;
+}
+
+.metric dt i {
+  font-size: 0.6875rem;
+  opacity: 0.8;
+}
+
+.metric dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
   font-weight: 700;
-  color: #1f2937;
-  margin: 0;
-  word-break: break-word;
-  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-due {
+  background: var(--c-due-soft);
+  border-color: transparent;
+}
+
+.metric-due dt,
+.metric-due dd {
+  color: var(--c-due);
+}
+
+/* Loading skeleton */
+.contrib-skeleton .sk {
+  background: linear-gradient(90deg, #eef1f5 25%, #f6f8fb 50%, #eef1f5 75%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.2s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.sk-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.125rem;
+}
+
+.sk-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.sk-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50% !important;
+}
+
+.sk-line {
+  height: 12px;
+  width: 60%;
+}
+
+.sk-line.short {
+  width: 35%;
+}
+
+.sk-block {
+  height: 104px;
+  border-radius: 14px !important;
+}
+
+.sk-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.sk-tile {
+  height: 56px;
+  border-radius: 12px !important;
+}
+
+@keyframes sk-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (min-width: 640px) {
+  .contrib-card {
+    margin: 1.5rem auto;
+    max-width: 600px;
+    padding: 1.5rem;
+  }
+
+  .pledge {
+    padding: 1.25rem;
+  }
+
+  .pledge-paid {
+    font-size: 2rem;
+  }
+
+  .metric {
+    padding: 0.875rem 1rem;
+  }
+
+  .metric dt {
+    font-size: 0.75rem;
+  }
+
+  .metric dd {
+    font-size: 1.0625rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .contrib-card {
+    max-width: 800px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .contrib-card {
+    max-width: 1000px;
+  }
+}
+
+@media (max-width: 359px) {
+  .contrib-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contrib-card,
+  .pledge-fill,
+  .contrib-skeleton .sk {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* About Wisdom House Section */
@@ -945,77 +1287,6 @@ export default {
 
   .about-text {
     font-size: 1.1875rem;
-  }
-}
-
-/* User Statistics Responsive Design */
-@media (min-width: 640px) {
-  .user-stats-section {
-    margin: 2rem auto;
-    max-width: 600px;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-  }
-
-  .stats-container {
-    padding: 2rem 2rem;
-  }
-
-  .stat-card {
-    padding: 1.5rem;
-  }
-
-  .stat-icon {
-    width: 56px;
-    height: 56px;
-    font-size: 1.5rem;
-  }
-
-  .stat-label {
-    font-size: 0.875rem;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .user-stats-section {
-    max-width: 800px;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-
-  .stats-container {
-    padding: 2.5rem 2.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .user-stats-section {
-    max-width: 1000px;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-  }
-
-  .stat-card {
-    flex-direction: column;
-    text-align: center;
-    padding: 1.5rem 1rem;
-  }
-
-  .stat-icon {
-    margin-bottom: 0.5rem;
   }
 }
 
